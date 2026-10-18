@@ -110,6 +110,19 @@ services:
     environment:
       CHOKIDAR_USEPOLLING: "true"
 
+  beat:
+    build:
+      context: ../backend
+    environment: *django_env
+    command: celery -A config.celery beat --loglevel=info
+    volumes:
+      - ../backend:/app
+    depends_on:
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
   nginx:
     image: nginx:1.27
     volumes:
@@ -119,6 +132,8 @@ services:
     depends_on:
       api:
         condition: service_healthy
+      channels:
+        condition: service_started
       frontend:
         condition: service_started
 

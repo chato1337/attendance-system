@@ -1,8 +1,12 @@
 import pytest
+from django.core.cache import cache
 from rest_framework.test import APIClient
 
+from apps.access.models import AccessNode, Door, Reader, ReaderProfile
 from apps.accounts.models import User
 from apps.accounts.tokens import issue_tokens
+from apps.common.secrets import generate_secret
+from apps.people.models import Employee
 from apps.tenants.models import Membership, Organization
 
 PASSWORD = "Nube-Segura-2026!"
@@ -103,3 +107,72 @@ def globex_client(globex_admin, globex):
 @pytest.fixture
 def super_client(superadmin):
     return auth_client(superadmin, None)
+
+
+@pytest.fixture(autouse=True)
+def _clear_throttle_cache():
+    cache.clear()
+    yield
+    cache.clear()
+
+
+def _edge_node(organization, name: str) -> AccessNode:
+    plain, digest = generate_secret()
+    node = AccessNode.all_objects.create(
+        organization=organization,
+        name=name,
+        site="Sede",
+        api_key_hash=digest,
+    )
+    node.plaintext_api_key = plain
+    return node
+
+
+@pytest.fixture
+def acme_node(acme):
+    return _edge_node(acme, "Sede Norte")
+
+
+@pytest.fixture
+def globex_node(globex):
+    return _edge_node(globex, "Sede Globex")
+
+
+@pytest.fixture
+def node_client(acme_node):
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {acme_node.plaintext_api_key}")
+    return client
+
+
+@pytest.fixture
+def acme_employee(acme):
+    return Employee.all_objects.create(
+        organization=acme,
+        document_id="900",
+        first_name="Carlos",
+        last_name="Mendoza",
+    )
+
+
+@pytest.fixture
+def acme_door(acme, acme_node):
+    return Door.all_objects.create(
+        organization=acme,
+        node=acme_node,
+        name="Principal",
+        relay_device_id="RELAY1",
+        direction="IN",
+    )
+
+
+@pytest.fixture
+def acme_reader(acme, acme_door):
+    profile = ReaderProfile.all_objects.filter(organization=acme).first()
+    return Reader.all_objects.create(
+        organization=acme,
+        door=acme_door,
+        reader_profile=profile,
+        name="Lector RFID",
+        reader_device_id="COM3",
+    )

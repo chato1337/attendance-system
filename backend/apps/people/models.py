@@ -35,6 +35,11 @@ class Employee(TenantSyncableModel):
     last_name = models.CharField(max_length=100)
     email = models.EmailField(blank=True, null=True)
     is_inside = models.BooleanField(default=False)
+    last_presence_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp del último acceso concedido que definió is_inside.",
+    )
 
     class Meta(TenantSyncableModel.Meta):
         abstract = False

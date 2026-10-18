@@ -7,10 +7,10 @@ requires-python = ">=3.12"
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 pythonpath = ["."]
-addopts = "--cov=apps/tenants --cov=apps/people --cov=apps/access --cov-report=term-missing --cov-fail-under=80"
+addopts = "--cov=apps/tenants --cov=apps/people --cov=apps/access --cov=apps/sync --cov-report=term-missing --cov-fail-under=80"
 
 [tool.coverage.run]
-source = ["apps/tenants", "apps/people", "apps/access"]
+source = ["apps/tenants", "apps/people", "apps/access", "apps/sync"]
 omit = ["*/migrations/*"]
 
 [tool.ruff]

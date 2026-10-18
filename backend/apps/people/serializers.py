@@ -42,6 +42,7 @@ class EmployeeSerializer(ReactivationMixin, serializers.ModelSerializer):
             "email",
             "is_active",
             "is_inside",
+            "last_presence_at",
             "deleted_at",
             "version",
             "created_at",
@@ -50,6 +51,8 @@ class EmployeeSerializer(ReactivationMixin, serializers.ModelSerializer):
         read_only_fields = [
             "id",
             "organization",
+            "is_inside",
+            "last_presence_at",
             "deleted_at",
             "version",
             "created_at",

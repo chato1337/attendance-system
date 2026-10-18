@@ -12,3 +12,5 @@ go run ./cmd/agent -version
 ```
 
 La normalización de lectores se comparte con el backend mediante `docs/reader-profiles/normalization-cases.json`. El intérprete en Go llega con el agente (Fase 3).
+
+El protocolo con la nube ya está congelado en [`docs/edge-protocol.md`](../docs/edge-protocol.md). El simulador Python de ese contrato vive en `edge/tools/simulator/simulator.py` y no sustituye al futuro binario.

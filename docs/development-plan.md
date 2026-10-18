@@ -22,7 +22,7 @@ Documentos fuente:
 | Face-Auth | Servicio **externo** multi-tenant ya existente (repo aparte). Se integra únicamente por el contrato de `face-auth.md` en **modo headless** (Modo B: `auth/login/`, `auth/register/`, `otp/*` desde nuestro frontend; `token/verify/` server-to-server desde nuestra nube). Una `Application` de Face-Auth por organización. Sus docs referencian `ARCHITECTURE.md`, `OPERATIONS.md` y `MASTER_PLAN.md`, que viven en ese otro repo. |
 | Infraestructura | `infra/docker-compose.yml` (API, worker, Channels, PostgreSQL 16, Redis, Nginx, frontend). |
 | Modelo de despliegue | **Multi-tenant** (varias organizaciones/clientes en una misma instalación). Confirmado 2026-10-18. |
-| Fase activa | **Fase 2** (ver bitácora). Las fases 0 y 1 están hechas. |
+| Fase activa | **Fase 3** (ver bitácora). Las fases 0, 1 y 2 están hechas. |
 
 ### 0.2. Qué construye este proyecto (resumen de una pantalla)
 
@@ -612,8 +612,8 @@ Actualizar al cierre de cada sesión de trabajo. Estados: `pendiente`, `en curso
 | --- | --- | --- | --- | --- | --- |
 | 0. Fundaciones | hecha | Monorepo, Compose, CI, ADR-001/002/009 y los tres componentes en marcha | Fase 2 | 2026-10-18 | — |
 | 1. Backend core | hecha | Modelo multi-tenant, OpenAPI, `seed_demo`, ADR-003/004 y cobertura > 80 % | Fase 2: protocolo de sync y canal de comandos | 2026-10-18 | — |
-| 2. Protocolo sync y comandos | pendiente | — | — | | |
-| 3. Agente Edge | pendiente | — | — | | |
+| 2. Protocolo sync y comandos | hecha | Delta, lotes, heartbeat, canal de comandos, simulador y ADR-005/010 | Fase 3: agente Edge | 2026-10-18 | — |
+| 3. Agente Edge | pendiente | — | Binario Go contra el simulador de gateway y el protocolo v1 | | |
 | 4. Panel web | pendiente | — | — | | |
 | 5. Tiempo real y aforo | pendiente | — | — | | |
 | 6. Face-Auth (kiosco) | pendiente | — | — | | |
@@ -624,6 +624,7 @@ Actualizar al cierre de cada sesión de trabajo. Estados: `pendiente`, `en curso
 
 Registro de sesiones (más reciente arriba):
 
+- **2026-10-18 (noche, 5):** cerrada la Fase 2. Protocolo Edge v1 en `docs/edge-protocol.md`: delta paginado (200 con lista vacía), lotes idempotentes por UUID, presencia por timestamp, heartbeat con baja por tarea periódica, y canal de comandos por WebSocket más long-poll. ADR-005 y ADR-010. El simulador pagina 10 000 credenciales y reenvía 1 000 marcaciones sin duplicarlas. `AccessAnomaly` queda creado para el APB que reporta el nodo; la vista y la reconciliación siguen en la Fase 5. Siguiente: Fase 3 (agente Go).
 - **2026-10-18 (noche, 4):** cerradas las fases 0 y 1. Monorepo (`backend`, `frontend`, `edge`, `infra`), Compose, CI, ADR-001, ADR-002, ADR-003, ADR-004 y ADR-009. API administrativa con aislamiento por organización, secuencia global `sync_version_seq`, perfiles de lector, `seed_demo` con Acme y Globex, y pruebas por encima del 80 % en `tenants`, `people` y `access`. Siguiente: Fase 2 (delta, lotes, heartbeat y canal de comandos).
 - **2026-10-18 (noche, 3):** resueltas P23–P25: rate limit de Face-Auth ajustable según demanda; el equipo de Face-Auth es del mismo ecosistema y puede adaptar el servicio a nuestros requerimientos; permiso de cámara por dispositivo aceptable y evolutivo. Nueva sección **4.3 Solicitudes al equipo de Face-Auth** (FA-1…FA-10, con bloqueantes FA-1/FA-5/FA-8) y su coordinación dentro de la Fase 6. **No quedan preguntas abiertas sobre Face-Auth.** Pendientes solo P5–P8, P10–P17 (ninguna bloquea la Fase 0).
 - **2026-10-18 (noche, 2):** resueltas P18–P22. Face-Auth pasa a integrarse en **modo headless (Modo B)**: componente `FaceCapture` propio, video directo navegador → Face-Auth, `redirect_token` verificado en la nube; el enrolamiento queda enlazado al empleado seleccionado (sin dependencia del email como clave) y el SSO hosted queda como fallback. Kiosco independiente del dispositivo (cliente web). Validación obligatoria de email + vista `face-readiness` (P18). Rostro factor único por defecto. Añadidas P23–P25 (rate limit por IP, operador de Face-Auth, permiso de cámara).

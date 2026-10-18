@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from apps.access.models import (
+    AccessAnomaly,
     AccessLog,
     AccessNode,
     Door,
@@ -30,7 +31,19 @@ class AccessNodeAdmin(UnscopedAdmin):
     list_display = ("name", "site", "organization", "is_online", "is_active")
     list_filter = ("organization", "is_online", "is_active")
     search_fields = ("name", "site")
-    readonly_fields = ("api_key_hash", "last_heartbeat_at", "last_sync_at")
+    readonly_fields = (
+        "api_key_hash",
+        "last_heartbeat_at",
+        "last_sync_at",
+        "last_sync_version",
+        "is_online",
+        "agent_version",
+        "gateway_connected",
+        "listening_devices",
+        "queue_size",
+        "commands_connected",
+        "gateway_version_reported",
+    )
 
 
 @admin.register(Door)
@@ -53,6 +66,20 @@ class AccessLogAdmin(UnscopedAdmin):
     list_filter = ("organization", "status", "direction", "method", "source")
     search_fields = ("employee__document_id", "employee__last_name", "denial_reason")
     readonly_fields = [field.name for field in AccessLog._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(AccessAnomaly)
+class AccessAnomalyAdmin(UnscopedAdmin):
+    list_display = ("created_at", "kind", "node", "employee", "organization")
+    list_filter = ("organization", "kind")
+    search_fields = ("employee__document_id", "access_log__id")
+    readonly_fields = [field.name for field in AccessAnomaly._meta.fields]
 
     def has_add_permission(self, request):
         return False

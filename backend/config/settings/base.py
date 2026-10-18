@@ -142,6 +142,29 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
+CELERY_BEAT_SCHEDULE = {
+    "mark-stale-nodes-offline": {
+        "task": "apps.sync.tasks.mark_stale_nodes_offline_task",
+        "schedule": 60.0,
+    },
+    "expire-edge-commands": {
+        "task": "apps.sync.tasks.expire_edge_commands",
+        "schedule": 5.0,
+    },
+}
+
+EDGE_DELTA_DEFAULT_LIMIT = int(os.environ.get("EDGE_DELTA_DEFAULT_LIMIT", "500"))
+EDGE_DELTA_MAX_LIMIT = int(os.environ.get("EDGE_DELTA_MAX_LIMIT", "1000"))
+EDGE_LOG_BATCH_MAX = int(os.environ.get("EDGE_LOG_BATCH_MAX", "500"))
+EDGE_HEARTBEAT_TIMEOUT_MINUTES = int(os.environ.get("EDGE_HEARTBEAT_TIMEOUT_MINUTES", "3"))
+EDGE_COMMAND_POLL_MAX_WAIT = 25
+EDGE_COMMAND_TTL_SECONDS = {
+    "identification": 10,
+    "open_door": 30,
+    "sync_now": 60,
+    "enrollment_mode": 120,
+    "reload": 60,
+}
 
 CHANNEL_LAYERS = {
     "default": {
@@ -166,6 +189,9 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "apps.common.pagination.StandardPagination",
     "PAGE_SIZE": 20,
     "EXCEPTION_HANDLER": "config.exceptions.api_exception_handler",
+    "DEFAULT_THROTTLE_RATES": {
+        "edge_node": "120/min",
+    },
 }
 
 SIMPLE_JWT = {
@@ -178,10 +204,24 @@ SIMPLE_JWT = {
 SPECTACULAR_SETTINGS = {
     "TITLE": "Sistema de Control y Registro de Acceso",
     "DESCRIPTION": (
-        "API administrativa multi-tenant. La organización activa viaja en el claim "
-        "org_id del JWT. Los secretos de nodo, kiosco y Face-Auth solo se entregan "
-        "al crearlos o regenerarlos."
+        "API administrativa multi-tenant y protocolo Edge v1. La organización activa "
+        "viaja en el claim org_id del JWT. El agente usa la API key del nodo. "
+        "Los secretos de nodo, kiosco y Face-Auth solo se entregan al crearlos o regenerarlos. "
+        "El contrato del agente está en docs/edge-protocol.md."
     ),
+    "ENUM_NAME_OVERRIDES": {
+        "CredentialTypeEnum": "apps.people.models.Credential.CredentialType",
+        "EdgeCommandTypeEnum": "apps.sync.models.EdgeCommand.Type",
+    },
+    "TAGS": [
+        {
+            "name": "Protocolo Edge",
+            "description": (
+                "Contrato congelado v1 entre la nube y el agente. "
+                "Cambios posteriores requieren ADR."
+            ),
+        }
+    ],
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,

@@ -6,9 +6,9 @@ El plan vivo está en [`docs/development-plan.md`](docs/development-plan.md). La
 
 ## Qué hay en esta versión
 
-- **API** (Django REST Framework) con organizaciones, usuarios, empleados, credenciales, nodos, puertas, lectores, perfiles de lector, zonas, kioscos y la configuración de Face-Auth.
+- **API** (Django REST Framework) con organizaciones, usuarios, empleados, credenciales, nodos, puertas, lectores, perfiles de lector, zonas, kioscos, la configuración de Face-Auth y el protocolo Edge v1 (delta, lotes, heartbeat y comandos).
 - **Panel** con la pantalla inicial. El CRUD visual llega en una fase posterior; mientras tanto la API se prueba en Swagger.
-- **Agente Edge** con el módulo Go compilando. La validación offline llega con el agente.
+- **Agente Edge** con el módulo Go compilando y un simulador en Python del protocolo de sync. La validación offline llega con el agente.
 
 ## Requisitos
 
@@ -30,6 +30,7 @@ docker compose -f infra/docker-compose.yml exec api python manage.py seed_demo
 | Servicio | Dirección |
 | --- | --- |
 | Swagger | http://localhost:8000/api/schema/swagger-ui/ |
+| WebSocket del agente | `ws://localhost:8001/ws/edge/` (también `/ws/` en el Nginx del puerto 8080) |
 | Salud de la API | http://localhost:8000/api/v1/health/ |
 | Panel | http://localhost:5173 |
 | Nginx (API y panel) | http://localhost:8080 |
@@ -58,6 +59,12 @@ Un usuario con una sola organización recibe el `org_id` en el token. Con varias
 | Organizaciones | no | no | no | sí |
 
 La llave de un nodo y el token de un kiosco se muestran solo al crearlos o regenerarlos. La `api_key` de Face-Auth se escribe y no se vuelve a leer.
+
+El agente usa esa llave como `Authorization: Bearer`. El contrato está en [`docs/edge-protocol.md`](docs/edge-protocol.md). Para recorrerlo sin hardware:
+
+```bash
+python edge/tools/simulator/simulator.py --base-url http://localhost:8000 --api-key <llave-del-nodo> sync
+```
 
 ## Pruebas
 

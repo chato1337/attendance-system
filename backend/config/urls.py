@@ -22,6 +22,7 @@ urlpatterns = [
         name="swagger-ui",
     ),
     path("api/v1/health/", HealthView.as_view(), name="health"),
+    path("api/v1/", include("apps.sync.urls")),
     path("api/v1/", include("apps.accounts.urls")),
     path("api/v1/", include("apps.tenants.urls")),
     path("api/v1/", include("apps.people.urls")),

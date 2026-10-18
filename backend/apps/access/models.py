@@ -78,6 +78,11 @@ class AccessNode(TenantModel, Activatable):
     gateway_version_reported = models.CharField(max_length=40, blank=True)
     last_sync_at = models.DateTimeField(null=True, blank=True)
     last_sync_version = models.BigIntegerField(default=0)
+    agent_version = models.CharField(max_length=40, blank=True)
+    gateway_connected = models.BooleanField(default=False)
+    listening_devices = models.JSONField(default=list, blank=True)
+    queue_size = models.PositiveIntegerField(default=0)
+    commands_connected = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "nodo"
@@ -218,3 +223,32 @@ class AccessLog(TenantModel):
             models.Index(fields=["employee", "timestamp"], name="accesslog_employee_ts_idx"),
             models.Index(fields=["node", "timestamp"], name="accesslog_node_ts_idx"),
         ]
+
+
+class AnomalyKind(models.TextChoices):
+    APB_REPORTED = "APB_REPORTED", "APB reportado por el nodo"
+
+
+class AccessAnomaly(TenantModel):
+    """Anomalía reportada por el nodo. La Fase 5 añade la vista y la reconciliación."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    node = models.ForeignKey(AccessNode, on_delete=models.PROTECT, related_name="anomalies")
+    access_log = models.ForeignKey(AccessLog, on_delete=models.CASCADE, related_name="anomalies")
+    employee = models.ForeignKey(
+        "people.Employee",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="anomalies",
+    )
+    kind = models.CharField(max_length=32, choices=AnomalyKind.choices)
+    detail = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "anomalía de acceso"
+        verbose_name_plural = "anomalías de acceso"
+        ordering = ["-created_at"]
+        base_manager_name = "all_objects"
+        default_manager_name = "objects"

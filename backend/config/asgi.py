@@ -8,9 +8,11 @@ django_asgi = get_asgi_application()
 
 from channels.routing import ProtocolTypeRouter, URLRouter  # noqa: E402
 
+from apps.sync.routing import websocket_urlpatterns  # noqa: E402
+
 application = ProtocolTypeRouter(
     {
         "http": django_asgi,
-        "websocket": URLRouter([]),
+        "websocket": URLRouter(websocket_urlpatterns),
     }
 )
