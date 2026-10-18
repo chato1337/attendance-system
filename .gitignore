@@ -20,5 +20,6 @@ coverage/
 
 edge/bin/
 *.exe
+*.db
 
 infra/pgdata/

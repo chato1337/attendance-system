@@ -166,6 +166,25 @@ La nube responde `auth_ok` y, enseguida, un mensaje `command` por cada pendiente
 
 Un comando creado con el socket abierto llega como `{"op": "command", ...}`. Nginx publica este camino en `/ws/` hacia el servicio Channels.
 
+## Lecturas de enrolamiento
+
+Adición compatible con v1. El comando `enrollment_mode` arma una ventana en el agente; las lecturas de ese lector no se validan. El agente las publica aquí para que el panel (Fase 4) las muestre. Cada publicación emite la señal `enrollment_read_created`.
+
+`POST /api/v1/edge/enrollment-reads/`
+
+```json
+{
+  "reader_id": "uuid del lector de este nodo",
+  "command_id": "opcional, uuid de un comando enrollment_mode del nodo",
+  "raw": "texto tal como llegó del gateway",
+  "payload": "texto ya normalizado, si la normalización tuvo éxito",
+  "credential_type": "RFID",
+  "error": "vacío, o el motivo por el que la normalización falló"
+}
+```
+
+`201` con `{"id": "uuid"}`. Un lector de otro nodo, o un `command_id` que no sea `enrollment_mode` de este nodo, responden `400` y no guardan nada.
+
 ## Simulador
 
 ```bash

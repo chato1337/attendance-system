@@ -1,0 +1,16 @@
+[Unit]
+Description=Agente Edge de control de acceso
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=attendance
+Group=attendance
+ExecStart=/usr/local/bin/attendance-agent -config /etc/attendance/agent.yaml
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

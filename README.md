@@ -8,7 +8,7 @@ El plan vivo está en [`docs/development-plan.md`](docs/development-plan.md). La
 
 - **API** (Django REST Framework) con organizaciones, usuarios, empleados, credenciales, nodos, puertas, lectores, perfiles de lector, zonas, kioscos, la configuración de Face-Auth y el protocolo Edge v1 (delta, lotes, heartbeat y comandos).
 - **Panel** con la pantalla inicial. El CRUD visual llega en una fase posterior; mientras tanto la API se prueba en Swagger.
-- **Agente Edge** con el módulo Go compilando y un simulador en Python del protocolo de sync. La validación offline llega con el agente.
+- **Agente Edge** en Go: valida en local, abre el relé a través del simulador de gateway y sincroniza con el protocolo v1. La prueba con hardware real sigue pendiente.
 
 ## Requisitos
 
@@ -65,6 +65,8 @@ El agente usa esa llave como `Authorization: Bearer`. El contrato está en [`doc
 ```bash
 python edge/tools/simulator/simulator.py --base-url http://localhost:8000 --api-key <llave-del-nodo> sync
 ```
+
+El binario del agente y el simulador de gateway están descritos en [`edge/README.md`](edge/README.md).
 
 ## Pruebas
 

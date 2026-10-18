@@ -52,3 +52,43 @@ class EdgeCommand(TenantModel):
 
     def __str__(self) -> str:
         return f"{self.type} {self.status}"
+
+
+class EnrollmentRead(TenantModel):
+    """Lectura cruda capturada por el agente durante el enrolamiento asistido."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    node = models.ForeignKey(
+        "access.AccessNode",
+        on_delete=models.CASCADE,
+        related_name="enrollment_reads",
+    )
+    reader = models.ForeignKey(
+        "access.Reader",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="enrollment_reads",
+    )
+    command = models.ForeignKey(
+        EdgeCommand,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="enrollment_reads",
+    )
+    raw = models.TextField(blank=True)
+    payload = models.TextField(blank=True)
+    credential_type = models.CharField(max_length=20, blank=True)
+    error = models.CharField(max_length=300, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "lectura de enrolamiento"
+        verbose_name_plural = "lecturas de enrolamiento"
+        ordering = ["-created_at"]
+        base_manager_name = "all_objects"
+        default_manager_name = "objects"
+
+    def __str__(self) -> str:
+        return self.raw or self.payload or str(self.id)

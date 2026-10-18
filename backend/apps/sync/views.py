@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.access.models import AccessNode
+from apps.access.models import AccessNode, Reader
 from apps.accounts.authentication import TenantJWTAuthentication
 from apps.sync.authentication import NodeAPIKeyAuthentication
 from apps.sync.commands import (
@@ -20,13 +20,15 @@ from apps.sync.delta import build_delta
 from apps.sync.formatting import isoformat
 from apps.sync.heartbeat import record_heartbeat
 from apps.sync.ingestion import ingest_logs
-from apps.sync.models import EdgeCommand
+from apps.sync.models import EdgeCommand, EnrollmentRead
 from apps.sync.serializers import (
     AckSerializer,
     DispatchCommandSerializer,
+    EnrollmentReadSerializer,
     HeartbeatSerializer,
     LogBatchSerializer,
 )
+from apps.sync.signals import enrollment_read_created
 from apps.sync.throttles import EdgeNodeThrottle
 from apps.tenants.models import Membership
 from apps.tenants.permissions import ALL_TENANT_ROLES, TenantRolePermission
@@ -119,6 +121,56 @@ class CommandAckView(EdgeAPIView):
         except CommandValidationError as exc:
             return Response({"detail": exc.detail}, status=400)
         return Response(command_body(command))
+
+
+class EnrollmentReadView(EdgeAPIView):
+    @extend_schema(
+        summary="Lectura de enrolamiento asistido",
+        request=EnrollmentReadSerializer,
+        responses={201: dict},
+        **EDGE,
+    )
+    def post(self, request):
+        incoming = EnrollmentReadSerializer(data=request.data)
+        incoming.is_valid(raise_exception=True)
+        data = incoming.validated_data
+        reader = (
+            Reader.all_objects.filter(
+                pk=data["reader_id"],
+                organization=request.node.organization,
+                door__node=request.node,
+            )
+            .select_related("door")
+            .first()
+        )
+        if reader is None:
+            return Response({"detail": "El lector no pertenece al nodo."}, status=400)
+        command = None
+        command_id = data.get("command_id")
+        if command_id is not None:
+            command = EdgeCommand.all_objects.filter(
+                pk=command_id,
+                node=request.node,
+                type=EdgeCommand.Type.ENROLLMENT_MODE,
+            ).first()
+            if command is None:
+                return Response({"detail": "El comando no pertenece al nodo."}, status=400)
+        row = EnrollmentRead.all_objects.create(
+            organization=request.node.organization,
+            node=request.node,
+            reader=reader,
+            command=command,
+            raw=data["raw"],
+            payload=data.get("payload") or "",
+            credential_type=data.get("credential_type") or "",
+            error=data.get("error") or "",
+        )
+        enrollment_read_created.send(
+            sender=EnrollmentRead,
+            read=row,
+            node_id=request.node.pk,
+        )
+        return Response({"id": str(row.id)}, status=201)
 
 
 class NodeCommandView(APIView):

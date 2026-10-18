@@ -43,6 +43,17 @@ class AckSerializer(serializers.Serializer):
     result = serializers.DictField()
 
 
+class EnrollmentReadSerializer(serializers.Serializer):
+    reader_id = serializers.UUIDField()
+    command_id = serializers.UUIDField(required=False)
+    raw = serializers.CharField(allow_blank=True, max_length=1024)
+    payload = serializers.CharField(allow_blank=True, required=False, default="", max_length=1024)
+    credential_type = serializers.CharField(
+        allow_blank=True, required=False, default="", max_length=20
+    )
+    error = serializers.CharField(allow_blank=True, required=False, default="", max_length=300)
+
+
 class DispatchCommandSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=EdgeCommand.Type.choices)
     payload = serializers.JSONField(required=False)

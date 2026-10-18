@@ -1,0 +1,16 @@
+# Copie este archivo a agent.yaml. La API key se entrega una sola vez al crear el nodo.
+cloud_url: http://localhost:8000
+api_key: ""
+gateway_url: ws://127.0.0.1:8080/ws
+sqlite_path: /var/lib/attendance/agent.db
+delta_interval: 30s
+push_interval: 5s
+heartbeat_interval: 60s
+push_batch_size: 200
+queue_threshold: 50
+retention: 168h
+listen_addr: 127.0.0.1:9090
+clock_skew_threshold: 5s
+command_ws_failures: 3
+# Versión del gateway externo contra la que se probó el agente. Vacío si no se conoce.
+gateway_version: ""
