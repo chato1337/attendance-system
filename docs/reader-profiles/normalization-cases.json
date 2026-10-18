@@ -1,0 +1,58 @@
+[
+  {
+    "name": "rfid hex trim upper pad",
+    "steps": [
+      {"op": "trim"},
+      {"op": "upper"},
+      {"op": "regex_extract", "pattern": "([0-9A-F]+)"},
+      {"op": "pad_left", "length": 8, "char": "0"}
+    ],
+    "min_length": 8,
+    "max_length": 8,
+    "sample": "  ab12  ",
+    "expected": "0000AB12"
+  },
+  {
+    "name": "strip leading zeros",
+    "steps": [{"op": "strip_leading_zeros"}],
+    "sample": "000120",
+    "expected": "120"
+  },
+  {
+    "name": "all zeros become a single zero",
+    "steps": [{"op": "strip_leading_zeros"}],
+    "sample": "0000",
+    "expected": "0"
+  },
+  {
+    "name": "hex to decimal",
+    "steps": [{"op": "hex_to_dec"}],
+    "sample": "FF",
+    "expected": "255"
+  },
+  {
+    "name": "decimal to hex",
+    "steps": [{"op": "dec_to_hex"}],
+    "sample": "255",
+    "expected": "FF"
+  },
+  {
+    "name": "trim and upper",
+    "steps": [{"op": "trim"}, {"op": "upper"}],
+    "sample": " ab ",
+    "expected": "AB"
+  },
+  {
+    "name": "regex without match",
+    "steps": [{"op": "regex_extract", "pattern": "([0-9]+)"}],
+    "sample": "ABC",
+    "error": true
+  },
+  {
+    "name": "below minimum length",
+    "steps": [{"op": "trim"}],
+    "min_length": 4,
+    "sample": "ab",
+    "error": true
+  }
+]
