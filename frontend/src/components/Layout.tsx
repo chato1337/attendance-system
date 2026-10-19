@@ -7,13 +7,13 @@ import { useOrgQuery } from "@/api/queries";
 import type { Organization, Role } from "@/api/types";
 import { changeOrganization } from "@/auth/actions";
 import { useSession } from "@/auth/session";
-import { canOperate } from "@/lib/access";
+import { canAdminister, canOperate } from "@/lib/access";
 import { errorMessage } from "@/lib/errors";
 import { ROLE_LABEL } from "@/lib/labels";
 
 import { Banner } from "./ui";
 
-const NAV: { to: string; label: string; allow?: "ops" | "platform" }[] = [
+const NAV: { to: string; label: string; allow?: "ops" | "admin" | "platform" }[] = [
   { to: "/", label: "Tablero" },
   { to: "/nodos", label: "Nodos" },
   { to: "/empleados", label: "Empleados" },
@@ -22,6 +22,9 @@ const NAV: { to: string; label: string; allow?: "ops" | "platform" }[] = [
   { to: "/puertas", label: "Puertas" },
   { to: "/perfiles", label: "Perfiles de lector" },
   { to: "/marcaciones", label: "Marcaciones" },
+  { to: "/horarios", label: "Horarios" },
+  { to: "/reportes", label: "Reportes" },
+  { to: "/integraciones", label: "Integraciones", allow: "admin" },
   { to: "/anomalias", label: "Anomalías" },
   { to: "/enrolamiento", label: "Enrolamiento", allow: "ops" },
   { to: "/kioscos", label: "Kioscos" },
@@ -33,6 +36,9 @@ const NAV: { to: string; label: string; allow?: "ops" | "platform" }[] = [
 function visible(item: (typeof NAV)[number], role: Role | null, isSuperadmin: boolean) {
   if (item.allow === "platform") {
     return isSuperadmin;
+  }
+  if (item.allow === "admin") {
+    return canAdminister(role);
   }
   if (item.allow === "ops") {
     return canOperate(role);

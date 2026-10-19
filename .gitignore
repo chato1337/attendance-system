@@ -10,6 +10,7 @@ htmlcov/
 celerybeat-schedule
 celerybeat-schedule.*
 staticfiles/
+backend/media/
 *.sqlite3
 .env
 .DS_Store

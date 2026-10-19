@@ -98,6 +98,10 @@ export function EmployeesPage({ canEdit }: { canEdit: boolean }) {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [bulkText, setBulkText] = useState(
+    '[{"document_id":"","first_name":"","last_name":"","department":"","email":""}]',
+  );
   const [enrolling, setEnrolling] = useState(false);
   const [selected, setSelected] = useState<Employee | null>(null);
   const [error, setError] = useState("");
@@ -209,6 +213,30 @@ export function EmployeesPage({ canEdit }: { canEdit: boolean }) {
     }
   }
 
+  async function importBulk() {
+    setError("");
+    setNotice("");
+    try {
+      const employees = JSON.parse(bulkText) as Record<string, unknown>[];
+      if (!Array.isArray(employees)) {
+        throw new Error("El JSON debe ser una lista de empleados.");
+      }
+      const result = await api.create<{
+        created: number;
+        updated: number;
+        errors: { index: number; error: string }[];
+      }>("/employees/bulk/", { employees });
+      setImporting(false);
+      setNotice(
+        `Importación: ${result.created} creados, ${result.updated} actualizados` +
+          (result.errors.length ? `, ${result.errors.length} con error.` : "."),
+      );
+      await refreshEmployees();
+    } catch (caught) {
+      setError(errorMessage(caught));
+    }
+  }
+
   async function toggleCredential(credential: Credential) {
     setError("");
     try {
@@ -236,9 +264,14 @@ export function EmployeesPage({ canEdit }: { canEdit: boolean }) {
       lede="Alta de personas y de sus credenciales. El agente las recibe en el siguiente delta."
       actions={
         canEdit ? (
-          <Button type="button" onClick={() => setCreating(true)}>
-            Nuevo empleado
-          </Button>
+          <>
+            <Button type="button" variant="ghost" onClick={() => setImporting(true)}>
+              Importar JSON
+            </Button>
+            <Button type="button" onClick={() => setCreating(true)}>
+              Nuevo empleado
+            </Button>
+          </>
         ) : null
       }
     >
@@ -411,6 +444,21 @@ export function EmployeesPage({ canEdit }: { canEdit: boolean }) {
               </Button>
             </div>
           </form>
+        </Modal>
+      ) : null}
+      {importing ? (
+        <Modal title="Importar empleados" onClose={() => setImporting(false)}>
+          <Field label="JSON (lista de empleados)">
+            <textarea rows={12} value={bulkText} onChange={(event) => setBulkText(event.target.value)} />
+          </Field>
+          <p className="hint">
+            Campos: document_id, first_name, last_name, email, department (nombre), is_active.
+          </p>
+          <div className="form-actions">
+            <Button type="button" onClick={() => void importBulk()}>
+              Importar
+            </Button>
+          </div>
         </Modal>
       ) : null}
     </Page>

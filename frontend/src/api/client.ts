@@ -115,4 +115,16 @@ export const api = {
   async remove(path: string): Promise<void> {
     await http.delete(path);
   },
+
+  async download(path: string, filename: string): Promise<void> {
+    const response = await http.get(path, { responseType: "blob" });
+    const url = URL.createObjectURL(response.data);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  },
 };

@@ -589,6 +589,19 @@ code {
   gap: 0.8rem;
 }
 
+.checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 1rem;
+}
+
+.checks label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.92rem;
+}
+
 @media (max-width: 900px) {
   .shell,
   .split,
@@ -702,4 +715,94 @@ code {
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.bars {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: minmax(6rem, 9rem) 1fr auto;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.bar-track {
+  height: 0.55rem;
+  background: var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: var(--accent);
+}
+
+.trend {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding-bottom: 0.3rem;
+}
+
+.trend-col {
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  min-width: 1.4rem;
+}
+
+.trend-stack {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-start;
+  width: 0.7rem;
+  height: 6.5rem;
+  background: var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.trend-present,
+.trend-absent {
+  display: block;
+  width: 100%;
+}
+
+.trend-present {
+  background: var(--accent);
+}
+
+.trend-absent {
+  background: var(--danger);
+}
+
+.weekday-picks {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.weekday-picks button {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 0.25rem 0.55rem;
+  cursor: pointer;
+}
+
+.weekday-picks button.on {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+
+.card h2 {
+  margin-top: 0;
 }

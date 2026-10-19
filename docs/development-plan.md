@@ -22,7 +22,7 @@ Documentos fuente:
 | Face-Auth | Servicio **externo** multi-tenant ya existente (repo aparte). Se integra únicamente por el contrato de `face-auth.md` en **modo headless** (Modo B: `auth/login/`, `auth/register/`, `otp/*` desde nuestro frontend; `token/verify/` server-to-server desde nuestra nube). Una `Application` de Face-Auth por organización. Sus docs referencian `ARCHITECTURE.md`, `OPERATIONS.md` y `MASTER_PLAN.md`, que viven en ese otro repo. |
 | Infraestructura | `infra/docker-compose.yml` (API, worker, Channels, PostgreSQL 16, Redis, Nginx, frontend). |
 | Modelo de despliegue | **Multi-tenant** (varias organizaciones/clientes en una misma instalación). Confirmado 2026-10-18. |
-| Fase activa | **Fase 6** (autenticación facial). El software del kiosco y de Face-Auth está en el árbol; falta la prueba contra un Face-Auth real (FA-1, FA-8). La Fase 3 sigue abierta solo por la prueba con hardware (P17). |
+| Fase activa | **Fase 8** (webhooks / ERP) en curso; Fases 7 cerrada en código. La Fase 6 sigue abierta solo por la prueba contra Face-Auth real (FA-1, FA-5, FA-8). La Fase 3 sigue abierta solo por la prueba con hardware (P17). |
 
 ### 0.2. Qué construye este proyecto (resumen de una pantalla)
 
@@ -617,13 +617,14 @@ Actualizar al cierre de cada sesión de trabajo. Estados: `pendiente`, `en curso
 | 4. Panel web | hecha | Sesión, CRUD del dominio, enrolamiento asistido, apertura remota, marcaciones y estado de nodos | Fase 5: tiempo real y aforo | 2026-10-18 | — |
 | 5. Tiempo real y aforo | hecha | Tablero en vivo, aforo por sede y zona, anomalías y ADR-006 | Fase 6: Face-Auth (kiosco) | 2026-10-18 | — |
 | 6. Face-Auth (kiosco) | en curso | Kiosco headless, enrolamiento, login opcional, mock y `docs/faceauth-integration.md`. Falta la prueba en staging de Face-Auth | Coordinar FA-1, FA-5 y FA-8 y repetir el flujo contra el servicio real | 2026-10-18 | — |
-| 7. Reportes | pendiente | — | — | | |
-| 8. Webhooks / ERP | pendiente | — | — | | |
+| 7. Reportes | hecha | Horarios, motor `DailyAttendance`, exportaciones CSV/XLSX/PDF/JSON, panel y `docs/reports.md` | — | 2026-10-18 | — |
+| 8. Webhooks / ERP | en curso | Webhooks firmados, tokens `atk_`, bulk de empleados, panel Integraciones y `docs/integrations.md` | Pulir conector de ejemplo y demo e2e receptor | 2026-10-18 | — |
 | 9. Seguridad y despliegue | pendiente | — | — | | |
 | 10. Autenticación avanzada | pendiente | — | — | | |
 
 Registro de sesiones (más reciente arriba):
 
+- **2026-10-18 (noche, 10):** cerrada la Fase 7 y avanzadas las integraciones de la Fase 8. Reportes: `Schedule`/`Shift`/`Holiday`, motor de asistencia diaria, resumen, exportaciones asíncronas (CSV, XLSX, PDF, JSON) con enlace firmado, pantallas Horarios/Reportes y `docs/reports.md`. Webhooks: suscripciones por organización, firma `X-Signature: sha256=…`, reintentos hasta 8, panel Integraciones, tokens `atk_` con alcances, `POST /employees/bulk/` y `docs/integrations.md`. La Fase 6 sigue a la espera de Face-Auth en staging; la Fase 3, del hardware de P17. Siguiente: cerrar la demo del receptor webhook y, si aplica, arrancar Fase 9.
 - **2026-10-18 (noche, 9):** avance de la Fase 6. El kiosco captura el rostro, Face-Auth devuelve un `redirect_token` y la nube lo verifica una sola vez antes de despachar `identification` al agente. El enrolamiento desde el panel, desde un enlace de 15 minutos y desde el kiosco exige el correo de preparación (P18). El login del panel con rostro es opcional por organización. El video no entra a nuestra API. La pantalla Rostro muestra la preparación y las métricas de 24 horas. Queda un mock del contrato y la guía `docs/faceauth-integration.md`. La fase sigue abierta hasta probarla contra Face-Auth en staging (FA-1, FA-5, FA-8). La Fase 3 sigue a la espera del hardware de P17.
 - **2026-10-18 (noche, 8):** cerrada la Fase 5. El tablero se suscribe a `ws/dashboard/` con el JWT de la organización y el kiosco, a `ws/kiosk/` solo con la puerta que le corresponde. Al llegar una marcación se publican `access.granted` o `access.denied` y, si cambió la presencia, `occupancy.changed`. El aforo sale de `is_inside` más la sede y la zona de la última puerta; `GET /api/v1/occupancy/` lo expone y un operador puede reiniciarlo por nodo o empleado. Una marcación vieja de otro nodo no revierte el estado y queda como `AccessAnomaly` de conflicto. El recálculo nocturno corrige derivas. ADR-006. La Fase 3 sigue a la espera del hardware de P17. Siguiente: Fase 6 (Face-Auth).
 - **2026-10-18 (noche, 7):** cerrada la Fase 4. Panel con JWT y refresh, selector de organización, CRUD de empleados (credenciales y vigencias), departamentos, zonas, nodos, puertas y lectores, perfiles con vista previa, kioscos, membresías y organizaciones. Apertura remota, enrolamiento asistido (con `GET /api/v1/enrollment-reads/`) y marcaciones filtradas. Los filtros por clave foránea comparan el UUID: un `ModelChoiceFilter` congelaba el queryset vacío del tenant al importar el módulo y la lista de credenciales respondía 400. La Fase 3 sigue a la espera del hardware de P17. Siguiente: Fase 5 (tiempo real y aforo).

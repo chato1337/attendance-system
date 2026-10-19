@@ -29,4 +29,5 @@ urlpatterns = [
     path("api/v1/", include("apps.access.urls")),
     path("api/v1/", include("apps.kiosk.urls")),
     path("api/v1/", include("apps.integrations.urls")),
+    path("api/v1/", include("apps.reports.urls")),
 ]

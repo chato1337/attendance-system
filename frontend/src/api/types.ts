@@ -392,4 +392,160 @@ export type PreviewResult = {
   error?: string;
 };
 
+export type Shift = {
+  id: string;
+  organization: string;
+  name: string;
+  start_time: string;
+  end_time: string;
+  late_tolerance_minutes: number;
+  early_leave_tolerance_minutes: number;
+  is_active: boolean;
+  deleted_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WorkSchedule = {
+  id: string;
+  organization: string;
+  shift: string;
+  shift_name: string;
+  employee: string | null;
+  employee_name: string;
+  department: string | null;
+  department_name: string;
+  weekdays: number[];
+  is_active: boolean;
+  deleted_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Holiday = {
+  id: string;
+  organization: string;
+  date: string;
+  name: string;
+  created_at: string;
+};
+
+export type AttendanceStatus =
+  | "PRESENT"
+  | "LATE"
+  | "EARLY_LEAVE"
+  | "INCOMPLETE"
+  | "ABSENT"
+  | "HOLIDAY";
+
+export type DailyAttendance = {
+  id: string;
+  employee: string;
+  document_id: string;
+  employee_name: string;
+  department: string | null;
+  department_name: string;
+  site: string;
+  work_date: string;
+  status: AttendanceStatus;
+  is_holiday: boolean;
+  scheduled: boolean;
+  expected_start: string | null;
+  expected_end: string | null;
+  first_in: string | null;
+  last_out: string | null;
+  worked_minutes: number;
+  late_minutes: number;
+  early_leave_minutes: number;
+  orphan_in: boolean;
+  granted_count: number;
+};
+
+export type AttendanceDepartmentBar = {
+  department_id: string | null;
+  name: string;
+  worked_minutes: number;
+  late_days: number;
+  absent_days: number;
+  employees: number;
+};
+
+export type AttendanceDayBar = {
+  date: string;
+  present: number;
+  absent: number;
+  late: number;
+  worked_minutes: number;
+};
+
+export type AttendanceSummary = {
+  date_from: string;
+  date_to: string;
+  employees: number;
+  expected_days: number;
+  present_days: number;
+  late_days: number;
+  early_leave_days: number;
+  absent_days: number;
+  incomplete_days: number;
+  holiday_days: number;
+  worked_minutes: number;
+  punctuality_rate: number | null;
+  absenteeism_rate: number | null;
+  by_department: AttendanceDepartmentBar[];
+  by_day: AttendanceDayBar[];
+};
+
+export type ExportFormat = "csv" | "xlsx" | "pdf" | "json";
+export type ExportStatus = "PENDING" | "RUNNING" | "READY" | "FAILED";
+
+export type ExportJob = {
+  id: string;
+  format: ExportFormat;
+  status: ExportStatus;
+  filters: Record<string, string | null>;
+  row_count: number;
+  error: string;
+  download_url: string | null;
+  expires_at: string;
+  created_at: string;
+};
+
+export type WebhookSubscription = {
+  id: string;
+  name: string;
+  url: string;
+  secret_value?: string;
+  events: string[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WebhookDelivery = {
+  id: string;
+  subscription: string;
+  event: string;
+  payload: Record<string, unknown>;
+  attempt: number;
+  status: "PENDING" | "SUCCESS" | "FAILED" | "EXHAUSTED";
+  response_status: number | null;
+  response_body: string;
+  next_retry_at: string | null;
+  created_at: string;
+  completed_at: string | null;
+};
+
+export type APIToken = {
+  id: string;
+  name: string;
+  token?: string;
+  token_prefix: string;
+  scopes: string[];
+  is_active: boolean;
+  last_used_at: string | null;
+  expires_at: string | null;
+  created_at: string;
+};
+
 export type QueryParams = Record<string, string | number | boolean | undefined | null>;

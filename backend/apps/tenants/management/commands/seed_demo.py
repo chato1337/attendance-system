@@ -1,3 +1,5 @@
+from datetime import date, time
+
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
@@ -8,6 +10,7 @@ from apps.accounts.models import User
 from apps.common.secrets import generate_secret
 from apps.kiosk.models import Kiosk
 from apps.people.models import Credential, Department, Employee
+from apps.reports.models import Holiday, Schedule, Shift
 from apps.tenants.models import Membership, Organization
 
 DEMO_PASSWORD = "Nube-Segura-2026!"
@@ -38,6 +41,8 @@ class Command(BaseCommand):
             self._membership(both, globex, Membership.Role.ADMIN)
             self._acme_people(acme)
             self._globex_people(globex)
+            self._schedule(acme)
+            self._schedule(globex)
         self.stdout.write(self.style.SUCCESS("Datos de demostración listos."))
         self.stdout.write(f"Contraseña de todos los usuarios demo: {DEMO_PASSWORD}")
         self.stdout.write("Usuarios: superadmin, acme.admin, acme.operator, acme.viewer,")
@@ -169,6 +174,37 @@ class Command(BaseCommand):
                 "reader_profile": profile,
             },
         )
+
+    def _schedule(self, organization):
+        department = (
+            Department.all_objects.filter(organization=organization).order_by("name").first()
+        )
+        if department is None:
+            return
+        shift, _created = Shift.all_objects.get_or_create(
+            organization=organization,
+            name="Jornada diurna",
+            defaults={
+                "start_time": time(8, 0),
+                "end_time": time(17, 0),
+                "late_tolerance_minutes": 10,
+                "early_leave_tolerance_minutes": 10,
+            },
+        )
+        Schedule.all_objects.get_or_create(
+            organization=organization,
+            department=department,
+            employee=None,
+            shift=shift,
+            defaults={"weekdays": [1, 2, 3, 4, 5], "is_active": True},
+        )
+        year = date.today().year
+        for day, name in ((date(year, 1, 1), "Año nuevo"), (date(year, 12, 25), "Navidad")):
+            Holiday.all_objects.get_or_create(
+                organization=organization,
+                date=day,
+                defaults={"name": name},
+            )
 
     def _employee(self, organization, document_id, first_name, last_name, email, department):
         employee, _created = Employee.all_objects.get_or_create(

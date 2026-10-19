@@ -82,6 +82,7 @@ INSTALLED_APPS = [
     "apps.kiosk.apps.KioskConfig",
     "apps.integrations.apps.IntegrationsConfig",
     "apps.sync.apps.SyncConfig",
+    "apps.reports.apps.ReportsConfig",
 ]
 
 MIDDLEWARE = [
@@ -160,7 +161,16 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.access.tasks.reconcile_occupancy_task",
         "schedule": crontab(hour=3, minute=20),
     },
+    "rebuild-daily-attendance": {
+        "task": "apps.reports.tasks.rebuild_daily_attendance",
+        "schedule": crontab(hour=2, minute=30),
+    },
 }
+
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
+REPORT_RANGE_MAX_DAYS = int(os.environ.get("REPORT_RANGE_MAX_DAYS", "366"))
+EXPORT_LINK_TTL_SECONDS = int(os.environ.get("EXPORT_LINK_TTL_SECONDS", str(24 * 60 * 60)))
 
 EDGE_DELTA_DEFAULT_LIMIT = int(os.environ.get("EDGE_DELTA_DEFAULT_LIMIT", "500"))
 EDGE_DELTA_MAX_LIMIT = int(os.environ.get("EDGE_DELTA_MAX_LIMIT", "1000"))
@@ -185,6 +195,7 @@ CHANNEL_LAYERS = {
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        "apps.integrations.authentication.OrgAPITokenAuthentication",
         "apps.accounts.authentication.TenantJWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [

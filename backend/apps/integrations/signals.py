@@ -3,7 +3,9 @@ import uuid
 from django.db.models.signals import post_save
 
 from apps.integrations.models import FaceAuthPendingDeletion
+from apps.integrations.webhooks import enqueue_access_log, enqueue_device_status
 from apps.people.models import Credential, Employee
+from apps.sync.signals import access_log_created, device_status_changed
 
 
 def connect() -> None:
@@ -17,6 +19,8 @@ def connect() -> None:
         sender=Employee,
         dispatch_uid="faceauth.employee.deletion",
     )
+    access_log_created.connect(on_access_log, dispatch_uid="webhooks.access_log")
+    device_status_changed.connect(on_device_status, dispatch_uid="webhooks.device_status")
 
 
 def queue_face_deletion(organization_id, user_id, reason: str) -> None:
@@ -55,3 +59,11 @@ def queue_employee_deletion(sender, instance: Employee, **kwargs) -> None:
     )
     for credential in credentials:
         queue_face_deletion(instance.organization_id, credential.payload, "employee_inactive")
+
+
+def on_access_log(sender, log, **kwargs) -> None:
+    enqueue_access_log(log)
+
+
+def on_device_status(sender, node, is_online, **kwargs) -> None:
+    enqueue_device_status(node, is_online)

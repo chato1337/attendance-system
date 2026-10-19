@@ -20,6 +20,9 @@ import { KioskPage } from "@/pages/KioskPage";
 import { KiosksPage } from "@/pages/KiosksPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { LogsPage } from "@/pages/LogsPage";
+import { IntegrationsPage } from "@/pages/IntegrationsPage";
+import { ReportsPage } from "@/pages/ReportsPage";
+import { SchedulesPage } from "@/pages/SchedulesPage";
 import { MembershipsPage } from "@/pages/MembershipsPage";
 import { NodesPage } from "@/pages/NodesPage";
 import { OrganizationsPage } from "@/pages/OrganizationsPage";
@@ -97,6 +100,14 @@ function OperateOnly({ children }: { children: ReactNode }) {
   return children;
 }
 
+function AdminOnly({ children }: { children: ReactNode }) {
+  const role = useSession((state) => state.role);
+  if (!canAdminister(role)) {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+}
+
 function PlatformOnly({ children }: { children: ReactNode }) {
   const isSuperadmin = useSession((state) => state.isSuperadmin);
   if (!isSuperadmin) {
@@ -134,7 +145,7 @@ export function AppRoutes() {
             element={
               <CatalogPage
                 title="Departamentos"
-                lede="Agrupan empleados para los reportes posteriores."
+                lede="Agrupan empleados y pueden compartir un horario de asistencia."
                 path="/departments/"
                 canEdit={operate}
               />
@@ -154,6 +165,16 @@ export function AppRoutes() {
           <Route path="puertas" element={<DoorsPage canEdit={operate} canOpen={operate} />} />
           <Route path="perfiles" element={<ProfilesPage canEdit={operate} />} />
           <Route path="marcaciones" element={<LogsPage />} />
+          <Route path="horarios" element={<SchedulesPage canEdit={operate} />} />
+          <Route path="reportes" element={<ReportsPage canRecalculate={operate} />} />
+          <Route
+            path="integraciones"
+            element={
+              <AdminOnly>
+                <IntegrationsPage canEdit={administer} />
+              </AdminOnly>
+            }
+          />
           <Route path="anomalias" element={<AnomaliesPage />} />
           <Route
             path="enrolamiento"

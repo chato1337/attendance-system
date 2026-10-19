@@ -1,1 +1,1 @@
-"""Reportes de asistencia. Se implementan en la Fase 7."""
+"""Reportes de asistencia: horarios, cálculo diario y exportación."""

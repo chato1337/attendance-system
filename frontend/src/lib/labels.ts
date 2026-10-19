@@ -68,6 +68,33 @@ export const ANOMALY_LABEL: Record<string, string> = {
   STATE_RESET: "Reinicio de estado",
 };
 
+export const ATTENDANCE_LABEL: Record<string, string> = {
+  PRESENT: "Presente",
+  LATE: "Tarde",
+  EARLY_LEAVE: "Salida anticipada",
+  INCOMPLETE: "Marca huérfana",
+  ABSENT: "Ausente",
+  HOLIDAY: "Festivo",
+};
+
+export const WEBHOOK_EVENT_LABEL: Record<string, string> = {
+  "access.granted": "Acceso concedido",
+  "access.denied": "Acceso denegado",
+  "device.status_changed": "Estado del nodo",
+  "employee.updated": "Empleado actualizado",
+  "occupancy.threshold": "Umbral de aforo",
+  "face.enrolled": "Rostro enrolado",
+};
+
+export const WEBHOOK_STATUS_LABEL: Record<string, string> = {
+  PENDING: "Pendiente",
+  SUCCESS: "Entregado",
+  FAILED: "Fallido",
+  EXHAUSTED: "Agotado",
+};
+
+export const WEEKDAY_LABEL = ["", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+
 export const COMMAND_STATUS_LABEL: Record<string, string> = {
   PENDING: "Pendiente",
   SENT: "Enviado",
