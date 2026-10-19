@@ -242,10 +242,102 @@ export type Kiosk = {
   name: string;
   is_active: boolean;
   last_seen_at: string | null;
+  camera_permission: "unknown" | "granted" | "denied" | "prompt";
   kiosk_token: string | null;
   deleted_at: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type KioskMe = {
+  kiosk_id: string;
+  name: string;
+  door_id: string;
+  door_name: string;
+  direction: string;
+  organization_name: string;
+  organization_slug: string;
+  face_enabled: boolean;
+  faceauth_enabled: boolean;
+  app_id: string;
+  api_url: string;
+  web_url: string;
+  allow_kiosk_self_enrollment: boolean;
+  camera_permission: string;
+};
+
+export type FaceIdentifyResult = {
+  id: string;
+  status: string;
+  code: string;
+  message: string;
+  door_id: string;
+  kiosk_id: string;
+  log_id: string | null;
+};
+
+export type FaceIntegration = {
+  id: string;
+  app_id: string;
+  api_key_set: boolean;
+  api_url: string;
+  server_api_url: string;
+  web_url: string;
+  enabled: boolean;
+  allow_panel_login: boolean;
+  allow_kiosk_self_enrollment: boolean;
+  cors_origins: string[];
+  hosted_redirect_uris: string[];
+};
+
+export type FaceEnrollmentSession = {
+  id: string;
+  employee: string;
+  employee_name: string;
+  started_by: string;
+  status: string;
+  failure_code: string;
+  created_at: string;
+  expires_at: string;
+};
+
+export type FaceMetrics = {
+  window_hours: number;
+  identifications: Record<string, number>;
+  codes: Record<string, number>;
+  verify_ms_p95: number | null;
+  camera_permission: Record<string, number>;
+  pending_deletions: number;
+  enabled: boolean;
+};
+
+export type FaceEnrollmentStart = {
+  id: string;
+  status: string;
+  failure_code: string;
+  app_id: string;
+  api_url: string;
+  web_url: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+};
+
+export type FaceReadiness = {
+  id: string;
+  document_id: string;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+  issues: string[];
+};
+
+export type FaceLoginOptions = {
+  allow_panel_login: boolean;
+  org_slug?: string;
+  app_id?: string;
+  api_url?: string;
+  web_url?: string;
 };
 
 export type Organization = {

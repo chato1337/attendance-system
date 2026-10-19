@@ -3,6 +3,7 @@ import uuid
 import pytest
 from django.db import IntegrityError, transaction
 
+from apps.integrations.models import FaceAuthIntegration
 from apps.people.models import Credential, Employee
 
 
@@ -206,11 +207,20 @@ def test_face_readiness_and_enrollment_validation(acme_client, acme):
     blocked = acme_client.post(f"/api/v1/employees/{invalid.id}/face-enrollment-sessions/")
     assert blocked.status_code == 400
     assert "invalid_email" in blocked.data["issues"]
+    FaceAuthIntegration.all_objects.create(
+        organization=acme,
+        app_id="app_acme",
+        api_key="test-key",
+        api_url="http://faceauth.test/api/v1",
+        enabled=True,
+    )
     started = acme_client.post(f"/api/v1/employees/{ready.id}/face-enrollment-sessions/")
     assert started.status_code == 201
     assert started.data["status"] == "PENDING"
     assert started.data["employee"] == ready.id
-    assert (
-        acme_client.get(f"/api/v1/face-enrollment-sessions/{started.data['id']}/").status_code
-        == 200
-    )
+    assert started.data["app_id"] == "app_acme"
+    assert started.data["email"] == "ana@acme.test"
+    detail = acme_client.get(f"/api/v1/face-enrollment-sessions/{started.data['id']}/")
+    assert detail.status_code == 200
+    assert detail.data["email"] == "ana@acme.test"
+    assert detail.data["app_id"] == "app_acme"

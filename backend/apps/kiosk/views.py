@@ -6,6 +6,8 @@ from rest_framework.response import Response
 
 from apps.common.mixins import TenantWriteMixin
 from apps.common.secrets import generate_secret
+from apps.integrations.faceauth.enrollment import enrollment_payload
+from apps.integrations.faceauth.flow import FaceFlowError
 from apps.kiosk.filters import FaceEnrollmentSessionFilter, KioskFilter
 from apps.kiosk.models import FaceEnrollmentSession, Kiosk
 from apps.kiosk.serializers import FaceEnrollmentSessionSerializer, KioskSerializer
@@ -59,3 +61,10 @@ class FaceEnrollmentSessionViewSet(
 
     def get_queryset(self):
         return FaceEnrollmentSession.objects.select_related("employee", "started_by_user")
+
+    def retrieve(self, request, *args, **kwargs):
+        session = self.get_object()
+        try:
+            return Response(enrollment_payload(session))
+        except FaceFlowError as exc:
+            return Response({"code": exc.code, "detail": exc.detail}, status=exc.status)

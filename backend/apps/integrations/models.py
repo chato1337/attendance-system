@@ -11,6 +11,10 @@ class FaceAuthIntegration(TenantModel, TimeStampedModel):
     app_id = models.CharField(max_length=64, blank=True)
     api_key = EncryptedTextField(blank=True)
     api_url = models.URLField()
+    server_api_url = models.URLField(
+        blank=True,
+        help_text="URL que usa la nube si el navegador no puede alcanzar la misma dirección.",
+    )
     web_url = models.URLField(blank=True)
     enabled = models.BooleanField(default=False)
     allow_panel_login = models.BooleanField(default=False)
@@ -49,3 +53,27 @@ class PendingFaceIdentity(TenantModel):
         ordering = ["-created_at"]
         base_manager_name = "all_objects"
         default_manager_name = "objects"
+
+
+class FaceAuthPendingDeletion(TenantModel):
+    """Baja de un perfil biométrico pendiente del endpoint FA-4."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    faceauth_user_id = models.UUIDField()
+    reason = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "baja facial pendiente"
+        verbose_name_plural = "bajas faciales pendientes"
+        ordering = ["-created_at"]
+        base_manager_name = "all_objects"
+        default_manager_name = "objects"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["organization", "faceauth_user_id"],
+                condition=models.Q(processed_at__isnull=True),
+                name="uniq_pending_face_deletion",
+            )
+        ]

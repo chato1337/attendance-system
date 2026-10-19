@@ -12,7 +12,11 @@ import { CatalogPage } from "@/pages/CatalogPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { DoorsPage } from "@/pages/DoorsPage";
 import { EmployeesPage } from "@/pages/EmployeesPage";
+import { FaceEnrollPage } from "@/pages/FaceEnrollPage";
+import { FacePage } from "@/pages/FacePage";
+import { FaceEnrollReturn, FaceLoginReturn } from "@/pages/FaceReturnPage";
 import { EnrollmentPage } from "@/pages/EnrollmentPage";
+import { KioskPage } from "@/pages/KioskPage";
 import { KiosksPage } from "@/pages/KiosksPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { LogsPage } from "@/pages/LogsPage";
@@ -112,6 +116,9 @@ export function AppRoutes() {
       <ThemeSync />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/kiosk/*" element={<KioskPage />} />
+        <Route path="/auth/faceauth/return" element={<FaceLoginReturn />} />
+        <Route path="/enroll/faceauth/callback" element={<FaceEnrollReturn />} />
         <Route
           element={
             <SessionGate>
@@ -157,6 +164,8 @@ export function AppRoutes() {
             }
           />
           <Route path="kioscos" element={<KiosksPage canEdit={administer} />} />
+          <Route path="rostro" element={<FacePage />} />
+          <Route path="enrolar/:sessionId" element={<FaceEnrollPage />} />
           <Route path="membresias" element={<MembershipsPage canEdit={administer} />} />
           <Route path="preferencias" element={<PreferencesPage />} />
           <Route

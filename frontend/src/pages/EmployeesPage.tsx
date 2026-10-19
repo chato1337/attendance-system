@@ -10,6 +10,7 @@ import type { Credential, Department, Employee, ReaderProfile } from "@/api/type
 import { usePreferences } from "@/auth/preferences";
 import { useSession } from "@/auth/session";
 import { Banner, Button, Empty, Field, Loading, Modal, Page, Pager } from "@/components/ui";
+import { FaceEnrollWizard } from "@/face/FaceEnrollWizard";
 import { errorMessage } from "@/lib/errors";
 import { CREDENTIAL_SOURCE_LABEL, CREDENTIAL_TYPE_LABEL, personName } from "@/lib/labels";
 import { formatStamp, fromDateTimeLocal } from "@/lib/time";
@@ -97,6 +98,7 @@ export function EmployeesPage({ canEdit }: { canEdit: boolean }) {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
+  const [enrolling, setEnrolling] = useState(false);
   const [selected, setSelected] = useState<Employee | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -322,6 +324,11 @@ export function EmployeesPage({ canEdit }: { canEdit: boolean }) {
                 </Button>
               </form>
             ) : null}
+            {canEdit ? (
+              <Button type="button" variant="ghost" onClick={() => setEnrolling(true)}>
+                Enrolar rostro
+              </Button>
+            ) : null}
             <h3>Credenciales</h3>
             {credentials.isLoading ? <Loading /> : null}
             {credentials.isError ? <Banner>{errorMessage(credentials.error)}</Banner> : null}
@@ -379,6 +386,17 @@ export function EmployeesPage({ canEdit }: { canEdit: boolean }) {
           </aside>
         )}
       </div>
+      {enrolling && selected ? (
+        <FaceEnrollWizard
+          employee={selected}
+          onClose={() => {
+            setEnrolling(false);
+            void queryClient.invalidateQueries({
+              queryKey: [organizationId, "/credentials/", selected.id],
+            });
+          }}
+        />
+      ) : null}
       {creating ? (
         <Modal title="Nuevo empleado" onClose={() => setCreating(false)}>
           <form className="form-grid" onSubmit={employeeForm.handleSubmit(createEmployee)}>

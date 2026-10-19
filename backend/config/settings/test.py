@@ -10,5 +10,10 @@ CELERY_TASK_EAGER_PROPAGATES = True
 CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 REST_FRAMEWORK = {
     **REST_FRAMEWORK,
-    "DEFAULT_THROTTLE_RATES": {"edge_node": "10000/min"},
+    "DEFAULT_THROTTLE_RATES": {
+        "edge_node": "10000/min",
+        "kiosk": "10000/min",
+        "kiosk_lookup": "10000/min",
+        "kiosk_identify": "10000/min",
+    },
 }

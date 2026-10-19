@@ -44,6 +44,7 @@ services:
       FIELD_ENCRYPTION_KEY: 9ABHw7khRINU5hwTHBX-eRy9vK8ttpqxQIzsHU3CNLQ=
       FACEAUTH_WEB_URL: http://localhost:8090
       FACEAUTH_API_URL: http://localhost:8090/api/v1
+      FRONTEND_URL: http://localhost:5173
       RUN_MIGRATIONS: "1"
     command: >
       gunicorn config.wsgi:application
@@ -122,6 +123,15 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+
+  faceauth-mock:
+    image: python:3.12-slim
+    working_dir: /mock
+    volumes:
+      - ./faceauth-mock:/mock:ro
+    command: python server.py
+    ports:
+      - "8090:8090"
 
   nginx:
     image: nginx:1.27

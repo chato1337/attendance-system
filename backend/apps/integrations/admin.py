@@ -1,7 +1,11 @@
 from django.contrib import admin
 
 from apps.common.admin import UnscopedAdmin
-from apps.integrations.models import FaceAuthIntegration, PendingFaceIdentity
+from apps.integrations.models import (
+    FaceAuthIntegration,
+    FaceAuthPendingDeletion,
+    PendingFaceIdentity,
+)
 
 
 @admin.register(FaceAuthIntegration)
@@ -17,3 +21,9 @@ class PendingFaceIdentityAdmin(UnscopedAdmin):
     list_display = ("email", "faceauth_user_id", "organization", "created_at")
     list_filter = ("organization",)
     search_fields = ("email",)
+
+
+@admin.register(FaceAuthPendingDeletion)
+class FaceAuthPendingDeletionAdmin(UnscopedAdmin):
+    list_display = ("faceauth_user_id", "reason", "organization", "created_at", "processed_at")
+    list_filter = ("organization", "reason")

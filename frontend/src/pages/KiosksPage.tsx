@@ -134,7 +134,10 @@ export function KiosksPage({ canEdit }: { canEdit: boolean }) {
                   <td>{kiosk.name}</td>
                   <td>{doorName.get(kiosk.door) ?? "—"}</td>
                   <td>{formatStamp(kiosk.last_seen_at, timeZone)}</td>
-                  <td>{kiosk.is_active ? "Activo" : "Inactivo"}</td>
+                  <td>
+                    {kiosk.is_active ? "Activo" : "Inactivo"}
+                    {kiosk.camera_permission === "denied" ? " · sin cámara" : ""}
+                  </td>
                   {canEdit ? (
                     <td className="row-actions">
                       <button type="button" onClick={() => startEdit(kiosk)}>
@@ -185,7 +188,7 @@ export function KiosksPage({ canEdit }: { canEdit: boolean }) {
           <SecretReveal
             title="Péguelo una vez en el kiosco"
             secret={secret}
-            hint="Este token no vuelve a mostrarse. La pantalla del kiosco llega en la fase de Face-Auth."
+            hint="Péguelo en la pantalla del kiosco (/kiosk). No vuelve a mostrarse."
           />
           <Button type="button" onClick={() => setSecret(null)}>
             Entendido

@@ -1,12 +1,10 @@
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
-from django.utils import timezone
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import AccessToken
 
 from apps.accounts.models import User
-from apps.common.secrets import hash_secret
-from apps.kiosk.models import Kiosk
+from apps.kiosk.authentication import find_kiosk, touch_kiosk
 from apps.sync.realtime import door_group, org_group
 from apps.tenants.models import Membership, Organization
 
@@ -134,21 +132,10 @@ def resolve_panel_organization(token: str) -> str | None:
 
 
 def resolve_kiosk(token: str) -> dict | None:
-    if not token:
-        return None
-    kiosk = (
-        Kiosk.all_objects.select_related("door", "organization")
-        .filter(
-            kiosk_token_hash=hash_secret(token),
-            is_active=True,
-            organization__is_active=True,
-        )
-        .first()
-    )
+    kiosk = find_kiosk(token)
     if kiosk is None:
         return None
-    now = timezone.now()
-    Kiosk.all_objects.filter(pk=kiosk.pk).update(last_seen_at=now, updated_at=now)
+    touch_kiosk(kiosk)
     return {
         "kiosk_id": str(kiosk.id),
         "door_id": str(kiosk.door_id),

@@ -23,5 +23,6 @@ El rostro es un factor único por defecto. Un kiosco es cualquier navegador con 
 
 - No se almacenan imágenes ni vectores biométricos.
 - Sin Internet, el kiosco no identifica por rostro y la puerta sigue operando con credenciales locales.
-- Hay que coordinar con el equipo de Face-Auth la lista de la sección 4.3 del plan antes de la Fase 6, en especial CORS, la confirmación del `redirect_token` y un entorno de pruebas.
+- Hay que coordinar con el equipo de Face-Auth la lista de la sección 4.3 del plan, en especial CORS, la confirmación del `redirect_token` y un entorno de pruebas. Mientras tanto el mock de `infra/faceauth-mock` cubre el contrato.
+- El `redirect_token` se guarda solo como hash. La URL que usa el navegador y la que usa la nube pueden diferir (`server_api_url`). La baja del perfil en Face-Auth queda encolada hasta que exista el endpoint FA-4.
 - `PendingFaceIdentity` queda reservado al respaldo hosted y no tiene API en esta fase.

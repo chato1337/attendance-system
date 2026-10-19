@@ -15,6 +15,10 @@ export function dashboardSocketUrl(apiUrl = apiBaseUrl, configured = import.meta
   return `${protocol}//${host}/ws/dashboard/`;
 }
 
+export function kioskSocketUrl(apiUrl = apiBaseUrl, configured = import.meta.env.VITE_WS_URL) {
+  return dashboardSocketUrl(apiUrl, configured).replace(/\/ws\/dashboard\/$/, "/ws/kiosk/");
+}
+
 export function isOccupancy(value: unknown): value is Occupancy {
   if (!value || typeof value !== "object") {
     return false;
@@ -48,6 +52,9 @@ export function describeLive(message: LiveMessage, names: Names): string {
   }
   if (message.event === "command.acked") {
     return `Comando ${String(data.type ?? "")} ${String(data.status ?? "")}`.trim();
+  }
+  if (message.event === "face.result") {
+    return `Rostro · ${String(data.message || data.status || "resultado")}`;
   }
   if (message.event === "enrollment.read") {
     const payload = String(data.payload || data.raw || "");

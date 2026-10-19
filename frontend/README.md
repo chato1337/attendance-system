@@ -1,6 +1,6 @@
 # Panel web
 
-Operación del dominio desde el navegador: sesión JWT, selector de organización, tablero en vivo, empleados y credenciales, nodos, puertas, perfiles de lector, marcaciones, anomalías, enrolamiento asistido, kioscos y membresías.
+Operación del dominio desde el navegador: sesión JWT, selector de organización, tablero en vivo, empleados y credenciales, nodos, puertas, perfiles de lector, marcaciones, anomalías, enrolamiento asistido, kioscos, rostro y membresías. El modo kiosco vive en `/kiosk` y no usa la sesión del panel.
 
 ## Arranque
 

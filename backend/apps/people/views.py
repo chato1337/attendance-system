@@ -5,9 +5,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.common.mixins import TenantWriteMixin
+from apps.integrations.faceauth.enrollment import begin_enrollment, enrollment_payload
+from apps.integrations.faceauth.flow import FaceFlowError
 from apps.kiosk.models import FaceEnrollmentSession
 from apps.kiosk.serializers import FaceEnrollmentSessionSerializer
-from apps.people.face import enrollment_blockers, face_readiness
+from apps.people.face import face_readiness
 from apps.people.filters import CredentialFilter, EmployeeFilter
 from apps.people.models import Credential, Department, Employee
 from apps.people.serializers import (
@@ -77,22 +79,18 @@ class EmployeeViewSet(TenantWriteMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=["post"], url_path="face-enrollment-sessions")
     def start_face_enrollment(self, request, pk=None):
         employee = self.get_object()
-        blockers = enrollment_blockers(employee)
-        if blockers:
-            return Response(
-                {
-                    "detail": "El empleado no está listo para enrolar el rostro.",
-                    "issues": blockers,
-                },
-                status=400,
+        try:
+            session = begin_enrollment(
+                employee,
+                started_by=FaceEnrollmentSession.StartedBy.USER,
+                user=request.user,
             )
-        session = FaceEnrollmentSession.objects.create(
-            organization=employee.organization,
-            employee=employee,
-            started_by=FaceEnrollmentSession.StartedBy.USER,
-            started_by_user=request.user,
-        )
-        return Response(FaceEnrollmentSessionSerializer(session).data, status=201)
+        except FaceFlowError as exc:
+            body = {"detail": exc.detail, "code": exc.code}
+            if exc.issues:
+                body["issues"] = exc.issues
+            return Response(body, status=exc.status)
+        return Response(enrollment_payload(session), status=201)
 
 
 @extend_schema_view(

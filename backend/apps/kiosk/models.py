@@ -14,10 +14,21 @@ def enrollment_expiry():
 
 
 class Kiosk(TenantModel, Activatable):
+    class CameraPermission(models.TextChoices):
+        UNKNOWN = "unknown", "Desconocido"
+        GRANTED = "granted", "Concedido"
+        DENIED = "denied", "Denegado"
+        PROMPT = "prompt", "Pendiente"
+
     door = models.ForeignKey("access.Door", on_delete=models.PROTECT, related_name="kiosks")
     name = models.CharField(max_length=150)
     kiosk_token_hash = models.CharField(max_length=64, unique=True)
     last_seen_at = models.DateTimeField(null=True, blank=True)
+    camera_permission = models.CharField(
+        max_length=16,
+        choices=CameraPermission.choices,
+        default=CameraPermission.UNKNOWN,
+    )
 
     class Meta:
         verbose_name = "kiosco"
@@ -68,6 +79,8 @@ class FaceEnrollmentSession(TenantModel):
     )
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING)
     faceauth_user_id = models.UUIDField(null=True, blank=True)
+    failure_code = models.CharField(max_length=64, blank=True)
+    detail = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField(default=enrollment_expiry)
 
@@ -77,3 +90,57 @@ class FaceEnrollmentSession(TenantModel):
         ordering = ["-created_at"]
         base_manager_name = "all_objects"
         default_manager_name = "objects"
+
+
+class FaceIdentificationRequest(TenantModel):
+    """Resultado persistido de un redirect_token. El kiosco consulta por id."""
+
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pendiente"
+        REJECTED = "REJECTED", "Rechazada"
+        UNKNOWN_FACE = "UNKNOWN_FACE", "Rostro desconocido"
+        GRANTED = "GRANTED", "Concedida"
+        DENIED = "DENIED", "Denegada"
+        NODE_UNREACHABLE = "NODE_UNREACHABLE", "Nodo inaccesible"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    kiosk = models.ForeignKey(Kiosk, on_delete=models.PROTECT, related_name="face_requests")
+    door = models.ForeignKey("access.Door", on_delete=models.PROTECT, related_name="face_requests")
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    token_digest = models.CharField(max_length=64, unique=True)
+    token_jti = models.CharField(max_length=64, blank=True)
+    faceauth_user_id = models.UUIDField(null=True, blank=True)
+    email = models.EmailField(blank=True)
+    code = models.CharField(max_length=64, blank=True)
+    message = models.TextField(blank=True)
+    access_log = models.ForeignKey(
+        "access.AccessLog",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="face_requests",
+    )
+    edge_log_id = models.UUIDField(null=True, blank=True)
+    command = models.ForeignKey(
+        "sync.EdgeCommand",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="face_requests",
+    )
+    timings = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "solicitud de identificación facial"
+        verbose_name_plural = "solicitudes de identificación facial"
+        ordering = ["-created_at"]
+        base_manager_name = "all_objects"
+        default_manager_name = "objects"
+        indexes = [
+            models.Index(
+                fields=["organization", "created_at"],
+                name="face_request_org_created_idx",
+            ),
+        ]

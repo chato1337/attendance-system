@@ -7,7 +7,7 @@ El plan vivo está en [`docs/development-plan.md`](docs/development-plan.md). La
 ## Qué hay en esta versión
 
 - **API** (Django REST Framework) con organizaciones, usuarios, empleados, credenciales, nodos, puertas, lectores, perfiles de lector, zonas, kioscos, aforo, la configuración de Face-Auth y el protocolo Edge v1 (delta, lotes, heartbeat y comandos).
-- **Panel** (React) para operar empleados, credenciales, nodos, puertas, perfiles, marcaciones, el tablero en vivo, anomalías, enrolamiento asistido, kioscos y membresías. La pantalla del kiosco y Face-Auth llegan en una fase posterior.
+- **Panel** (React) para operar empleados, credenciales, nodos, puertas, perfiles, marcaciones, el tablero en vivo, anomalías, enrolamiento asistido, kioscos, rostro y membresías. El kiosco está en `/kiosk`.
 - **Agente Edge** en Go: valida en local, abre el relé a través del simulador de gateway y sincroniza con el protocolo v1. La prueba con hardware real sigue pendiente.
 
 ## Requisitos
@@ -35,6 +35,8 @@ docker compose -f infra/docker-compose.yml exec api python manage.py seed_demo
 | WebSocket del kiosco | `ws://localhost:8001/ws/kiosk/` |
 | Salud de la API | http://localhost:8000/api/v1/health/ |
 | Panel | http://localhost:5173 |
+| Kiosco | http://localhost:5173/kiosk |
+| Mock de Face-Auth | http://localhost:8090 |
 | Nginx (API y panel) | http://localhost:8080 |
 | Admin de Django | http://localhost:8000/admin/ |
 

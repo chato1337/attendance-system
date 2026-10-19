@@ -57,6 +57,9 @@ CSRF_TRUSTED_ORIGINS = env_list(
 FIELD_ENCRYPTION_KEY = os.environ.get("FIELD_ENCRYPTION_KEY", DEV_FERNET_KEY)
 FACEAUTH_WEB_URL = os.environ.get("FACEAUTH_WEB_URL", "http://localhost:8090")
 FACEAUTH_API_URL = os.environ.get("FACEAUTH_API_URL", "http://localhost:8090/api/v1")
+FACEAUTH_VERIFY_TIMEOUT_SECONDS = float(os.environ.get("FACEAUTH_VERIFY_TIMEOUT_SECONDS", "3"))
+FACE_IDENTIFY_TIMEOUT_SECONDS = float(os.environ.get("FACE_IDENTIFY_TIMEOUT_SECONDS", "8"))
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
 ALLOW_DEMO_SEED = False
 
 INSTALLED_APPS = [
@@ -197,6 +200,9 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "config.exceptions.api_exception_handler",
     "DEFAULT_THROTTLE_RATES": {
         "edge_node": "120/min",
+        "kiosk": "120/min",
+        "kiosk_lookup": "20/min",
+        "kiosk_identify": "30/min",
     },
 }
 

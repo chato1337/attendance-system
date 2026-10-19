@@ -25,6 +25,7 @@ const NAV: { to: string; label: string; allow?: "ops" | "platform" }[] = [
   { to: "/anomalias", label: "Anomalías" },
   { to: "/enrolamiento", label: "Enrolamiento", allow: "ops" },
   { to: "/kioscos", label: "Kioscos" },
+  { to: "/rostro", label: "Rostro" },
   { to: "/membresias", label: "Membresías" },
   { to: "/organizaciones", label: "Organizaciones", allow: "platform" },
 ];
