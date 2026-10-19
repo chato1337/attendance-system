@@ -3,6 +3,8 @@ from datetime import timedelta
 from pathlib import Path
 from urllib.parse import unquote, urlparse
 
+from celery.schedules import crontab
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 DEV_SECRET_KEY = "dev-only-attendance-secret-key-32b"
@@ -150,6 +152,10 @@ CELERY_BEAT_SCHEDULE = {
     "expire-edge-commands": {
         "task": "apps.sync.tasks.expire_edge_commands",
         "schedule": 5.0,
+    },
+    "reconcile-occupancy": {
+        "task": "apps.access.tasks.reconcile_occupancy_task",
+        "schedule": crontab(hour=3, minute=20),
     },
 }
 

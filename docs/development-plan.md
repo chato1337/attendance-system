@@ -22,7 +22,7 @@ Documentos fuente:
 | Face-Auth | Servicio **externo** multi-tenant ya existente (repo aparte). Se integra únicamente por el contrato de `face-auth.md` en **modo headless** (Modo B: `auth/login/`, `auth/register/`, `otp/*` desde nuestro frontend; `token/verify/` server-to-server desde nuestra nube). Una `Application` de Face-Auth por organización. Sus docs referencian `ARCHITECTURE.md`, `OPERATIONS.md` y `MASTER_PLAN.md`, que viven en ese otro repo. |
 | Infraestructura | `infra/docker-compose.yml` (API, worker, Channels, PostgreSQL 16, Redis, Nginx, frontend). |
 | Modelo de despliegue | **Multi-tenant** (varias organizaciones/clientes en una misma instalación). Confirmado 2026-10-18. |
-| Fase activa | **Fase 5** (tiempo real y aforo). La Fase 4 está hecha. La Fase 3 sigue abierta solo por la prueba con hardware (P17). |
+| Fase activa | **Fase 6** (autenticación facial). La Fase 5 está hecha. La Fase 3 sigue abierta solo por la prueba con hardware (P17). |
 
 ### 0.2. Qué construye este proyecto (resumen de una pantalla)
 
@@ -615,7 +615,7 @@ Actualizar al cierre de cada sesión de trabajo. Estados: `pendiente`, `en curso
 | 2. Protocolo sync y comandos | hecha | Delta, lotes, heartbeat, canal de comandos, simulador y ADR-005/010 | Fase 3: agente Edge | 2026-10-18 | — |
 | 3. Agente Edge | en curso | Binario Go, simulador de gateway, pipeline offline y canal de comandos. Falta hardware real y la latencia en el puesto objetivo | Medir en el equipo de P17 cuando exista | 2026-10-18 | — |
 | 4. Panel web | hecha | Sesión, CRUD del dominio, enrolamiento asistido, apertura remota, marcaciones y estado de nodos | Fase 5: tiempo real y aforo | 2026-10-18 | — |
-| 5. Tiempo real y aforo | pendiente | — | — | | |
+| 5. Tiempo real y aforo | hecha | Tablero en vivo, aforo por sede y zona, anomalías y ADR-006 | Fase 6: Face-Auth (kiosco) | 2026-10-18 | — |
 | 6. Face-Auth (kiosco) | pendiente | — | — | | |
 | 7. Reportes | pendiente | — | — | | |
 | 8. Webhooks / ERP | pendiente | — | — | | |
@@ -624,6 +624,7 @@ Actualizar al cierre de cada sesión de trabajo. Estados: `pendiente`, `en curso
 
 Registro de sesiones (más reciente arriba):
 
+- **2026-10-18 (noche, 8):** cerrada la Fase 5. El tablero se suscribe a `ws/dashboard/` con el JWT de la organización y el kiosco, a `ws/kiosk/` solo con la puerta que le corresponde. Al llegar una marcación se publican `access.granted` o `access.denied` y, si cambió la presencia, `occupancy.changed`. El aforo sale de `is_inside` más la sede y la zona de la última puerta; `GET /api/v1/occupancy/` lo expone y un operador puede reiniciarlo por nodo o empleado. Una marcación vieja de otro nodo no revierte el estado y queda como `AccessAnomaly` de conflicto. El recálculo nocturno corrige derivas. ADR-006. La Fase 3 sigue a la espera del hardware de P17. Siguiente: Fase 6 (Face-Auth).
 - **2026-10-18 (noche, 7):** cerrada la Fase 4. Panel con JWT y refresh, selector de organización, CRUD de empleados (credenciales y vigencias), departamentos, zonas, nodos, puertas y lectores, perfiles con vista previa, kioscos, membresías y organizaciones. Apertura remota, enrolamiento asistido (con `GET /api/v1/enrollment-reads/`) y marcaciones filtradas. Los filtros por clave foránea comparan el UUID: un `ModelChoiceFilter` congelaba el queryset vacío del tenant al importar el módulo y la lista de credenciales respondía 400. La Fase 3 sigue a la espera del hardware de P17. Siguiente: Fase 5 (tiempo real y aforo).
 - **2026-10-18 (noche, 6):** agente Edge en Go. SQLite, normalización compartida con el backend, motor de acceso (APB, vigencia, rostro, enrolamiento), cliente del gateway con descarte del historial, simulador de gateway, delta/lotes/latido y canal de comandos con long-poll. `POST /api/v1/edge/enrollment-reads/` publica las lecturas del modo asistido. Guía en `docs/edge-install.md`. La fase sigue en curso: no hay Raspberry ni lector real para el informe de latencia ni para la prueba de hardware (P17).
 - **2026-10-18 (noche, 5):** cerrada la Fase 2. Protocolo Edge v1 en `docs/edge-protocol.md`: delta paginado (200 con lista vacía), lotes idempotentes por UUID, presencia por timestamp, heartbeat con baja por tarea periódica, y canal de comandos por WebSocket más long-poll. ADR-005 y ADR-010. El simulador pagina 10 000 credenciales y reenvía 1 000 marcaciones sin duplicarlas. `AccessAnomaly` queda creado para el APB que reporta el nodo; la vista y la reconciliación siguen en la Fase 5. Siguiente: Fase 3 (agente Go).

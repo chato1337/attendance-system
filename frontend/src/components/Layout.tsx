@@ -14,6 +14,7 @@ import { ROLE_LABEL } from "@/lib/labels";
 import { Banner } from "./ui";
 
 const NAV: { to: string; label: string; allow?: "ops" | "platform" }[] = [
+  { to: "/", label: "Tablero" },
   { to: "/nodos", label: "Nodos" },
   { to: "/empleados", label: "Empleados" },
   { to: "/departamentos", label: "Departamentos" },
@@ -21,6 +22,7 @@ const NAV: { to: string; label: string; allow?: "ops" | "platform" }[] = [
   { to: "/puertas", label: "Puertas" },
   { to: "/perfiles", label: "Perfiles de lector" },
   { to: "/marcaciones", label: "Marcaciones" },
+  { to: "/anomalias", label: "Anomalías" },
   { to: "/enrolamiento", label: "Enrolamiento", allow: "ops" },
   { to: "/kioscos", label: "Kioscos" },
   { to: "/membresias", label: "Membresías" },
@@ -83,7 +85,7 @@ export function Layout() {
         </p>
         <nav aria-label="Secciones">
           {NAV.filter((item) => visible(item, role, isSuperadmin)).map((item) => (
-            <NavLink key={item.to} to={item.to}>
+            <NavLink key={item.to} to={item.to} end={item.to === "/"}>
               {item.label}
             </NavLink>
           ))}

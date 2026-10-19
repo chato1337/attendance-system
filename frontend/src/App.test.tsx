@@ -38,7 +38,7 @@ test("muestra el panel tras un ingreso válido", async () => {
   fireEvent.change(screen.getByLabelText("Usuario"), { target: { value: "acme.operator" } });
   fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "secreta" } });
   fireEvent.click(screen.getByRole("button", { name: "Entrar" }));
-  expect(await screen.findByRole("heading", { name: "Nodos" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { name: "Tablero" })).toBeInTheDocument();
 });
 
 test("informa cuando las credenciales no sirven", async () => {
@@ -48,6 +48,25 @@ test("informa cuando las credenciales no sirven", async () => {
   fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "mala" } });
   fireEvent.click(screen.getByRole("button", { name: "Entrar" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Usuario o contraseña incorrectos.");
+});
+
+test("el tablero muestra el aforo de la organización", async () => {
+  signIn("OPERATOR");
+  vi.mocked(api.get).mockImplementation((path: string) => {
+    if (path === "/occupancy/") {
+      return Promise.resolve({
+        total_inside: 4,
+        sites: [{ node_id: "node-1", name: "Norte", site: "Planta", inside: 4 }],
+        zones: [{ zone_id: "zone-1", name: "Recepción", inside: 4 }],
+      });
+    }
+    return Promise.resolve([]);
+  });
+  renderRoutes("/");
+  expect(await screen.findByRole("heading", { name: "Tablero" })).toBeInTheDocument();
+  expect(await screen.findByText("Dentro ahora")).toBeInTheDocument();
+  expect(screen.getAllByText("4").length).toBeGreaterThan(0);
+  expect(screen.getByRole("button", { name: "Reiniciar" })).toBeInTheDocument();
 });
 
 test("un perfil de consulta no puede dar de alta empleados", async () => {

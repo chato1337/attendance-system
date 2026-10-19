@@ -1,7 +1,15 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
-from apps.access.models import AccessLog, AccessNode, Door, Reader, ReaderProfile, Zone
+from apps.access.models import (
+    AccessAnomaly,
+    AccessLog,
+    AccessNode,
+    Door,
+    Reader,
+    ReaderProfile,
+    Zone,
+)
 from apps.access.normalization import validate_steps
 from apps.common.mixins import ReactivationMixin
 from apps.common.secrets import generate_secret
@@ -206,6 +214,34 @@ class ReaderSerializer(ReactivationMixin, serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"reader_profile": "El perfil no pertenece a la organización de la puerta."}
             )
+        return attrs
+
+
+class AccessAnomalySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AccessAnomaly
+        fields = [
+            "id",
+            "organization",
+            "node",
+            "access_log",
+            "employee",
+            "kind",
+            "detail",
+            "created_at",
+        ]
+        read_only_fields = fields
+
+
+class OccupancyResetSerializer(serializers.Serializer):
+    employee = serializers.UUIDField(required=False)
+    node = serializers.UUIDField(required=False)
+
+    def validate(self, attrs):
+        has_employee = attrs.get("employee") is not None
+        has_node = attrs.get("node") is not None
+        if has_employee == has_node:
+            raise serializers.ValidationError("Indique un empleado o un nodo.")
         return attrs
 
 

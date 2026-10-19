@@ -56,6 +56,9 @@ export type Employee = {
   is_active: boolean;
   is_inside: boolean;
   last_presence_at: string | null;
+  presence_node: string | null;
+  presence_zone: string | null;
+  presence_reset_at: string | null;
   deleted_at: string | null;
   version: number;
   created_at: string;
@@ -191,6 +194,45 @@ export type AccessLog = {
   method: string;
   source: string;
   created_at: string;
+};
+
+export type OccupancySite = {
+  node_id: string | null;
+  name: string;
+  site: string;
+  inside: number;
+};
+
+export type OccupancyZone = {
+  zone_id: string | null;
+  name: string;
+  inside: number;
+};
+
+export type Occupancy = {
+  total_inside: number;
+  sites: OccupancySite[];
+  zones: OccupancyZone[];
+};
+
+export type AnomalyKind = "APB_REPORTED" | "APB_CONFLICT" | "OCCUPANCY_DRIFT" | "STATE_RESET";
+
+export type AccessAnomaly = {
+  id: string;
+  organization: string;
+  node: string | null;
+  access_log: string | null;
+  employee: string | null;
+  kind: AnomalyKind;
+  detail: Record<string, unknown>;
+  created_at: string;
+};
+
+export type LiveMessage = {
+  event: string;
+  organization_id: string;
+  occurred_at: string;
+  data: Record<string, unknown>;
 };
 
 export type Kiosk = {

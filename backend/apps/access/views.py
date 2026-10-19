@@ -4,14 +4,26 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from apps.access.filters import AccessLogFilter, DoorFilter, ReaderFilter
-from apps.access.models import AccessLog, AccessNode, Door, Reader, ReaderProfile, Zone
+from apps.access.filters import AccessAnomalyFilter, AccessLogFilter, DoorFilter, ReaderFilter
+from apps.access.models import (
+    AccessAnomaly,
+    AccessLog,
+    AccessNode,
+    Door,
+    Reader,
+    ReaderProfile,
+    Zone,
+)
 from apps.access.normalization import NormalizationError, apply_normalization, validate_steps
+from apps.access.occupancy import occupancy_snapshot, reset_presence
 from apps.access.serializers import (
+    AccessAnomalySerializer,
     AccessLogSerializer,
     AccessNodeSerializer,
     DoorSerializer,
+    OccupancyResetSerializer,
     ReaderProfilePreviewSerializer,
     ReaderProfileSerializer,
     ReaderSerializer,
@@ -183,3 +195,44 @@ class AccessLogViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return AccessLog.objects.select_related("node", "door", "employee", "credential")
+
+
+class OccupancyView(APIView):
+    permission_classes = [IsAuthenticated, TenantRolePermission]
+    read_roles = ALL_TENANT_ROLES
+
+    @extend_schema(tags=["Aforo"], responses={200: dict})
+    def get(self, request):
+        return Response(occupancy_snapshot(request.organization))
+
+
+class OccupancyResetView(APIView):
+    permission_classes = [IsAuthenticated, TenantRolePermission]
+    write_roles = OPERATIONAL
+
+    @extend_schema(tags=["Aforo"], request=OccupancyResetSerializer, responses={200: dict})
+    def post(self, request):
+        incoming = OccupancyResetSerializer(data=request.data)
+        incoming.is_valid(raise_exception=True)
+        data = incoming.validated_data
+        reset = reset_presence(
+            request.organization,
+            employee_id=data.get("employee"),
+            node_id=data.get("node"),
+            actor_id=request.user.pk,
+        )
+        return Response({"reset": reset})
+
+
+@extend_schema_view(
+    list=extend_schema(tags=["Anomalías"]),
+    retrieve=extend_schema(tags=["Anomalías"]),
+)
+class AccessAnomalyViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = AccessAnomalySerializer
+    permission_classes = [IsAuthenticated, TenantRolePermission]
+    filterset_class = AccessAnomalyFilter
+    ordering_fields = ["created_at", "kind"]
+
+    def get_queryset(self):
+        return AccessAnomaly.objects.select_related("node", "employee", "access_log")

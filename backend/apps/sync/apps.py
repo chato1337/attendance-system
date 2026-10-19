@@ -5,3 +5,8 @@ class SyncConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "apps.sync"
     verbose_name = "Sincronización"
+
+    def ready(self) -> None:
+        from apps.sync.realtime import connect_receivers
+
+        connect_receivers()

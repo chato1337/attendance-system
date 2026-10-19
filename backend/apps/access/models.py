@@ -227,14 +227,29 @@ class AccessLog(TenantModel):
 
 class AnomalyKind(models.TextChoices):
     APB_REPORTED = "APB_REPORTED", "APB reportado por el nodo"
+    APB_CONFLICT = "APB_CONFLICT", "Conflicto de presencia entre nodos"
+    OCCUPANCY_DRIFT = "OCCUPANCY_DRIFT", "Aforo corregido"
+    STATE_RESET = "STATE_RESET", "Reinicio de estado"
 
 
 class AccessAnomaly(TenantModel):
-    """Anomalía reportada por el nodo. La Fase 5 añade la vista y la reconciliación."""
+    """Auditoría de anti-passback, conflictos entre nodos y correcciones de aforo."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    node = models.ForeignKey(AccessNode, on_delete=models.PROTECT, related_name="anomalies")
-    access_log = models.ForeignKey(AccessLog, on_delete=models.CASCADE, related_name="anomalies")
+    node = models.ForeignKey(
+        AccessNode,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="anomalies",
+    )
+    access_log = models.ForeignKey(
+        AccessLog,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="anomalies",
+    )
     employee = models.ForeignKey(
         "people.Employee",
         on_delete=models.SET_NULL,

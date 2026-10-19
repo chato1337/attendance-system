@@ -4,3 +4,5 @@ from django.dispatch import Signal
 access_log_created = Signal()
 device_status_changed = Signal()
 enrollment_read_created = Signal()
+occupancy_changed = Signal()
+command_settled = Signal()

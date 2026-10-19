@@ -7,7 +7,9 @@ import { useSession } from "@/auth/session";
 import { Layout } from "@/components/Layout";
 import { OrgPicker } from "@/components/OrganizationForm";
 import { canAdminister, canOperate } from "@/lib/access";
+import { AnomaliesPage } from "@/pages/AnomaliesPage";
 import { CatalogPage } from "@/pages/CatalogPage";
+import { DashboardPage } from "@/pages/DashboardPage";
 import { DoorsPage } from "@/pages/DoorsPage";
 import { EmployeesPage } from "@/pages/EmployeesPage";
 import { EnrollmentPage } from "@/pages/EnrollmentPage";
@@ -117,7 +119,7 @@ export function AppRoutes() {
             </SessionGate>
           }
         >
-          <Route index element={<Navigate to="/nodos" replace />} />
+          <Route index element={<DashboardPage canReset={operate} />} />
           <Route path="nodos" element={<NodesPage canEdit={administer} />} />
           <Route path="empleados" element={<EmployeesPage canEdit={operate} />} />
           <Route
@@ -145,6 +147,7 @@ export function AppRoutes() {
           <Route path="puertas" element={<DoorsPage canEdit={operate} canOpen={operate} />} />
           <Route path="perfiles" element={<ProfilesPage canEdit={operate} />} />
           <Route path="marcaciones" element={<LogsPage />} />
+          <Route path="anomalias" element={<AnomaliesPage />} />
           <Route
             path="enrolamiento"
             element={

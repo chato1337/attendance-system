@@ -61,6 +61,13 @@ export const DENIAL_LABEL: Record<string, string> = {
   NODE_OFFLINE: "Nodo sin conexión",
 };
 
+export const ANOMALY_LABEL: Record<string, string> = {
+  APB_REPORTED: "Anti-passback reportado",
+  APB_CONFLICT: "Conflicto entre nodos",
+  OCCUPANCY_DRIFT: "Aforo corregido",
+  STATE_RESET: "Reinicio de estado",
+};
+
 export const COMMAND_STATUS_LABEL: Record<string, string> = {
   PENDING: "Pendiente",
   SENT: "Enviado",

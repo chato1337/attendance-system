@@ -40,6 +40,25 @@ class Employee(TenantSyncableModel):
         blank=True,
         help_text="Timestamp del último acceso concedido que definió is_inside.",
     )
+    presence_node = models.ForeignKey(
+        "access.AccessNode",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="present_employees",
+    )
+    presence_zone = models.ForeignKey(
+        "access.Zone",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="present_employees",
+    )
+    presence_reset_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Las marcaciones anteriores a este instante no vuelven a definir la presencia.",
+    )
 
     class Meta(TenantSyncableModel.Meta):
         abstract = False
@@ -54,6 +73,7 @@ class Employee(TenantSyncableModel):
         ]
         indexes = [
             models.Index(fields=["organization", "email"], name="employee_org_email_idx"),
+            models.Index(fields=["organization", "is_inside"], name="employee_org_inside_idx"),
         ]
 
     def __str__(self) -> str:

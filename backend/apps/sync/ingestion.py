@@ -18,7 +18,7 @@ from apps.access.models import (
 )
 from apps.people.models import Credential, Employee
 from apps.sync.formatting import isoformat
-from apps.sync.signals import access_log_created
+from apps.sync.signals import access_log_created, occupancy_changed
 
 _OPTIONAL_UUID = ("employee_id", "credential_id", "door_id")
 
@@ -85,6 +85,10 @@ def ingest_logs(node, raw_logs: list[dict]) -> dict:
                 duplicated.append(str(item["id"]))
                 continue
             log.batch_index = index
+            if item["door_id"] in doors:
+                log.presence_zone_id = doors[item["door_id"]].zone_id
+            else:
+                log.presence_zone_id = None
             accepted.append(log)
             if log.denial_reason == DenialReason.APB_VIOLATION:
                 AccessAnomaly.all_objects.create(
@@ -99,13 +103,15 @@ def ingest_logs(node, raw_logs: list[dict]) -> dict:
                         "denial_reason": log.denial_reason,
                     },
                 )
-        _apply_presence(accepted)
+        changed_orgs = _apply_presence(accepted)
         created_ids = [log.id for log in accepted]
 
-        def emit(log_ids=created_ids):
+        def emit(log_ids=created_ids, orgs=tuple(changed_orgs)):
             logs = AccessLog.all_objects.filter(id__in=log_ids)
             for log in logs:
                 access_log_created.send(sender=AccessLog, log=log, node_id=node.pk)
+            for organization_id in orgs:
+                occupancy_changed.send(sender=Employee, organization_id=organization_id)
 
         transaction.on_commit(emit)
 
@@ -117,11 +123,12 @@ def ingest_logs(node, raw_logs: list[dict]) -> dict:
     }
 
 
-def _apply_presence(logs: list[AccessLog]) -> None:
+def _apply_presence(logs: list[AccessLog]) -> set:
     grouped: dict = defaultdict(list)
     for log in logs:
         if log.employee_id and log.status == AccessStatus.GRANTED:
             grouped[log.employee_id].append(log)
+    changed_orgs: set = set()
     for employee_id, events in grouped.items():
         try:
             employee = Employee.all_objects.select_for_update().get(pk=employee_id)
@@ -130,16 +137,86 @@ def _apply_presence(logs: list[AccessLog]) -> None:
         ordered = sorted(events, key=lambda item: (item.timestamp, item.batch_index))
         changed = False
         for event in ordered:
-            presence_at = employee.last_presence_at
-            if presence_at is not None and event.timestamp < presence_at:
-                continue
-            inside = event.direction == Direction.IN
-            if employee.is_inside != inside or employee.last_presence_at != event.timestamp:
-                employee.is_inside = inside
-                employee.last_presence_at = event.timestamp
-                changed = True
+            changed = _apply_event(employee, event) or changed
         if changed:
-            employee.save(update_fields=["is_inside", "last_presence_at", "updated_at"])
+            employee.save(
+                update_fields=[
+                    "is_inside",
+                    "last_presence_at",
+                    "presence_node",
+                    "presence_zone",
+                    "updated_at",
+                ]
+            )
+            changed_orgs.add(employee.organization_id)
+    return changed_orgs
+
+
+def _apply_event(employee: Employee, event: AccessLog) -> bool:
+    presence_at = employee.last_presence_at
+    if presence_at is not None and event.timestamp < presence_at:
+        _record_node_conflict(employee, event, kept_current=True)
+        return False
+    if presence_at is not None and event.timestamp == presence_at and _contradicts(employee, event):
+        _record_node_conflict(employee, event, kept_current=False)
+    inside = event.direction == Direction.IN
+    zone_id = event.presence_zone_id if inside else None
+    node_id = event.node_id
+    dirty = (
+        employee.is_inside != inside
+        or employee.last_presence_at != event.timestamp
+        or employee.presence_node_id != node_id
+        or employee.presence_zone_id != zone_id
+    )
+    employee.is_inside = inside
+    employee.last_presence_at = event.timestamp
+    employee.presence_node_id = node_id
+    employee.presence_zone_id = zone_id
+    return dirty
+
+
+def _contradicts(employee: Employee, event: AccessLog) -> bool:
+    if employee.last_presence_at is None or event.node_id == employee.presence_node_id:
+        return False
+    implied_inside = event.direction == Direction.IN
+    return implied_inside != employee.is_inside
+
+
+def _record_node_conflict(employee: Employee, event: AccessLog, *, kept_current: bool) -> None:
+    if not _contradicts(employee, event):
+        return
+    if kept_current:
+        kept_at = employee.last_presence_at
+        kept_inside = employee.is_inside
+        kept_node_id = employee.presence_node_id
+        ignored_at = event.timestamp
+        ignored_direction = event.direction
+        ignored_node_id = event.node_id
+        resolution = "kept_newer"
+    else:
+        kept_at = event.timestamp
+        kept_inside = event.direction == Direction.IN
+        kept_node_id = event.node_id
+        ignored_at = employee.last_presence_at
+        ignored_direction = Direction.IN if employee.is_inside else Direction.OUT
+        ignored_node_id = employee.presence_node_id
+        resolution = "arrival_order"
+    AccessAnomaly.all_objects.create(
+        organization_id=employee.organization_id,
+        node_id=event.node_id,
+        access_log=event,
+        employee=employee,
+        kind=AnomalyKind.APB_CONFLICT,
+        detail={
+            "resolution": resolution,
+            "kept_at": isoformat(kept_at),
+            "kept_inside": kept_inside,
+            "kept_node_id": str(kept_node_id) if kept_node_id else None,
+            "ignored_at": isoformat(ignored_at),
+            "ignored_direction": ignored_direction,
+            "ignored_node_id": str(ignored_node_id) if ignored_node_id else None,
+        },
+    )
 
 
 def _same_org(model, node, object_id):

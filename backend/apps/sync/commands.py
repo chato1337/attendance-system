@@ -13,6 +13,7 @@ from apps.people.models import Credential
 from apps.sync.formatting import isoformat
 from apps.sync.models import EdgeCommand
 from apps.sync.notify import command_subscription, notify_ack, notify_commands, wait_for_ack
+from apps.sync.signals import command_settled
 
 TERMINAL = {EdgeCommand.Status.ACKED, EdgeCommand.Status.FAILED, EdgeCommand.Status.EXPIRED}
 OPEN = {EdgeCommand.Status.PENDING, EdgeCommand.Status.SENT}
@@ -173,6 +174,10 @@ def acknowledge(node, command_id, result: dict) -> EdgeCommand:
         command.result = result
         command.acked_at = timezone.now()
         command.save(update_fields=["status", "result", "acked_at"])
+        command_id = command.id
+        transaction.on_commit(
+            lambda: command_settled.send(sender=EdgeCommand, command_id=command_id)
+        )
     notify_ack(command.id)
     return command
 

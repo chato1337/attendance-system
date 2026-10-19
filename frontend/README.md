@@ -1,6 +1,6 @@
 # Panel web
 
-Operación del dominio desde el navegador: sesión JWT, selector de organización, empleados y credenciales, nodos, puertas, perfiles de lector, marcaciones, enrolamiento asistido, kioscos y membresías.
+Operación del dominio desde el navegador: sesión JWT, selector de organización, tablero en vivo, empleados y credenciales, nodos, puertas, perfiles de lector, marcaciones, anomalías, enrolamiento asistido, kioscos y membresías.
 
 ## Arranque
 
@@ -11,7 +11,7 @@ npm test
 npm run dev
 ```
 
-La aplicación queda en http://localhost:5173. La API se toma de `VITE_API_URL` (por defecto `http://localhost:8000/api/v1`; ver `.env.example`).
+La aplicación queda en http://localhost:5173. La API se toma de `VITE_API_URL` (por defecto `http://localhost:8000/api/v1`; ver `.env.example`). El tablero abre `VITE_WS_URL` (por defecto `ws://localhost:8001`) en `/ws/dashboard/`.
 
 Con los datos de `seed_demo`, entre como `acme.operator` / `Nube-Segura-2026!`. `multi.admin` elige organización al entrar. `superadmin` administra las organizaciones.
 
