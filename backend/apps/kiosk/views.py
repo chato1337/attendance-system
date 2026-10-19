@@ -6,6 +6,7 @@ from rest_framework.response import Response
 
 from apps.common.mixins import TenantWriteMixin
 from apps.common.secrets import generate_secret
+from apps.kiosk.filters import FaceEnrollmentSessionFilter, KioskFilter
 from apps.kiosk.models import FaceEnrollmentSession, Kiosk
 from apps.kiosk.serializers import FaceEnrollmentSessionSerializer, KioskSerializer
 from apps.tenants.models import Membership
@@ -26,7 +27,7 @@ class KioskViewSet(TenantWriteMixin, viewsets.ModelViewSet):
     write_roles = {Membership.Role.ADMIN}
     search_fields = ["name"]
     ordering_fields = ["name", "created_at", "last_seen_at"]
-    filterset_fields = ["door", "is_active"]
+    filterset_class = KioskFilter
 
     def get_queryset(self):
         return Kiosk.objects.select_related("door")
@@ -53,7 +54,7 @@ class FaceEnrollmentSessionViewSet(
 ):
     serializer_class = FaceEnrollmentSessionSerializer
     permission_classes = [IsAuthenticated, TenantRolePermission]
-    filterset_fields = ["employee", "status", "started_by"]
+    filterset_class = FaceEnrollmentSessionFilter
     ordering_fields = ["created_at", "expires_at", "status"]
 
     def get_queryset(self):

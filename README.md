@@ -7,7 +7,7 @@ El plan vivo está en [`docs/development-plan.md`](docs/development-plan.md). La
 ## Qué hay en esta versión
 
 - **API** (Django REST Framework) con organizaciones, usuarios, empleados, credenciales, nodos, puertas, lectores, perfiles de lector, zonas, kioscos, la configuración de Face-Auth y el protocolo Edge v1 (delta, lotes, heartbeat y comandos).
-- **Panel** con la pantalla inicial. El CRUD visual llega en una fase posterior; mientras tanto la API se prueba en Swagger.
+- **Panel** (React) para operar empleados, credenciales, nodos, puertas, perfiles, marcaciones, enrolamiento asistido, kioscos y membresías. La pantalla del kiosco y Face-Auth llegan en una fase posterior.
 - **Agente Edge** en Go: valida en local, abre el relé a través del simulador de gateway y sincroniza con el protocolo v1. La prueba con hardware real sigue pendiente.
 
 ## Requisitos

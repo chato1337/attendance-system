@@ -5,10 +5,11 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist"] },
+  { ignores: ["dist", "playwright-report", "test-results", "blob-report", "openapi.json"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    files: ["src/**/*.{ts,tsx}"],
     languageOptions: {
       globals: globals.browser,
     },
@@ -19,6 +20,12 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": "off",
+    },
+  },
+  {
+    files: ["playwright.config.ts", "e2e/**/*.ts", "scripts/**/*.mjs"],
+    languageOptions: {
+      globals: globals.node,
     },
   },
 );

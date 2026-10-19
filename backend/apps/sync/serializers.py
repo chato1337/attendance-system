@@ -1,7 +1,7 @@
 from django.conf import settings
 from rest_framework import serializers
 
-from apps.sync.models import EdgeCommand
+from apps.sync.models import EdgeCommand, EnrollmentRead
 
 
 class LogBatchSerializer(serializers.Serializer):
@@ -52,6 +52,23 @@ class EnrollmentReadSerializer(serializers.Serializer):
         allow_blank=True, required=False, default="", max_length=20
     )
     error = serializers.CharField(allow_blank=True, required=False, default="", max_length=300)
+
+
+class EnrollmentReadPanelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EnrollmentRead
+        fields = [
+            "id",
+            "node",
+            "reader",
+            "command",
+            "raw",
+            "payload",
+            "credential_type",
+            "error",
+            "created_at",
+        ]
+        read_only_fields = fields
 
 
 class DispatchCommandSerializer(serializers.Serializer):

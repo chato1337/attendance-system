@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
@@ -24,6 +26,7 @@ from apps.sync.models import EdgeCommand, EnrollmentRead
 from apps.sync.serializers import (
     AckSerializer,
     DispatchCommandSerializer,
+    EnrollmentReadPanelSerializer,
     EnrollmentReadSerializer,
     HeartbeatSerializer,
     LogBatchSerializer,
@@ -173,6 +176,35 @@ class EnrollmentReadView(EdgeAPIView):
         return Response({"id": str(row.id)}, status=201)
 
 
+class EnrollmentReadListView(APIView):
+    """Lecturas del enrolamiento asistido, para el panel."""
+
+    authentication_classes = [TenantJWTAuthentication]
+    permission_classes = [IsAuthenticated, TenantRolePermission]
+    read_roles = ALL_TENANT_ROLES
+
+    @extend_schema(
+        summary="Lecturas de enrolamiento asistido",
+        operation_id="enrollment_reads_list",
+        responses={200: EnrollmentReadPanelSerializer(many=True)},
+        tags=["Nodos"],
+    )
+    def get(self, request):
+        reader_id, reader_error = _optional_uuid(request.query_params.get("reader"), "reader")
+        if reader_error:
+            return reader_error
+        command_id, command_error = _optional_uuid(request.query_params.get("command"), "command")
+        if command_error:
+            return command_error
+        queryset = EnrollmentRead.objects.order_by("-created_at")
+        if reader_id is not None:
+            queryset = queryset.filter(reader_id=reader_id)
+        if command_id is not None:
+            queryset = queryset.filter(command_id=command_id)
+        rows = queryset[:100]
+        return Response(EnrollmentReadPanelSerializer(rows, many=True).data)
+
+
 class NodeCommandView(APIView):
     """Despacho y consulta de comandos desde el panel."""
 
@@ -268,6 +300,15 @@ def _delta_params(request):
             ),
         )
     return since, limit, None
+
+
+def _optional_uuid(raw, field):
+    if raw in (None, ""):
+        return None, None
+    try:
+        return uuid.UUID(str(raw)), None
+    except ValueError:
+        return None, Response({"detail": f"{field} debe ser un UUID."}, status=400)
 
 
 def _wait_param(request):

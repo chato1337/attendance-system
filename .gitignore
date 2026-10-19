@@ -17,6 +17,11 @@ staticfiles/
 node_modules/
 dist/
 coverage/
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+frontend/openapi.json
+frontend/src/api/schema.d.ts
 
 edge/bin/
 *.exe

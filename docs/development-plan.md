@@ -16,13 +16,13 @@ Documentos fuente:
 
 | Elemento | Estado |
 | --- | --- |
-| Código fuente | Monorepo con API Django, panel React inicial y agente Edge en Go (falta la prueba con hardware). |
+| Código fuente | Monorepo con API Django, panel React de operación y agente Edge en Go (falta la prueba con hardware). |
 | Historial git | El código de las fases 0 y 1 está en el árbol de trabajo. El commit inicial de specs es `e888902`. |
 | Gateway de hardware | Existe como proyecto Go **externo** en otro repositorio. **No se trae a este repo**: se integra únicamente a través del contrato descrito en `hardware-gateway.md`. Su doc referencia `certificados.md`, que vive en ese otro repo. |
 | Face-Auth | Servicio **externo** multi-tenant ya existente (repo aparte). Se integra únicamente por el contrato de `face-auth.md` en **modo headless** (Modo B: `auth/login/`, `auth/register/`, `otp/*` desde nuestro frontend; `token/verify/` server-to-server desde nuestra nube). Una `Application` de Face-Auth por organización. Sus docs referencian `ARCHITECTURE.md`, `OPERATIONS.md` y `MASTER_PLAN.md`, que viven en ese otro repo. |
 | Infraestructura | `infra/docker-compose.yml` (API, worker, Channels, PostgreSQL 16, Redis, Nginx, frontend). |
 | Modelo de despliegue | **Multi-tenant** (varias organizaciones/clientes en una misma instalación). Confirmado 2026-10-18. |
-| Fase activa | **Fase 3** (agente en código; falta la prueba con hardware). Las fases 0, 1 y 2 están hechas. |
+| Fase activa | **Fase 5** (tiempo real y aforo). La Fase 4 está hecha. La Fase 3 sigue abierta solo por la prueba con hardware (P17). |
 
 ### 0.2. Qué construye este proyecto (resumen de una pantalla)
 
@@ -614,7 +614,7 @@ Actualizar al cierre de cada sesión de trabajo. Estados: `pendiente`, `en curso
 | 1. Backend core | hecha | Modelo multi-tenant, OpenAPI, `seed_demo`, ADR-003/004 y cobertura > 80 % | Fase 2: protocolo de sync y canal de comandos | 2026-10-18 | — |
 | 2. Protocolo sync y comandos | hecha | Delta, lotes, heartbeat, canal de comandos, simulador y ADR-005/010 | Fase 3: agente Edge | 2026-10-18 | — |
 | 3. Agente Edge | en curso | Binario Go, simulador de gateway, pipeline offline y canal de comandos. Falta hardware real y la latencia en el puesto objetivo | Medir en el equipo de P17 cuando exista | 2026-10-18 | — |
-| 4. Panel web | pendiente | — | — | | |
+| 4. Panel web | hecha | Sesión, CRUD del dominio, enrolamiento asistido, apertura remota, marcaciones y estado de nodos | Fase 5: tiempo real y aforo | 2026-10-18 | — |
 | 5. Tiempo real y aforo | pendiente | — | — | | |
 | 6. Face-Auth (kiosco) | pendiente | — | — | | |
 | 7. Reportes | pendiente | — | — | | |
@@ -624,6 +624,7 @@ Actualizar al cierre de cada sesión de trabajo. Estados: `pendiente`, `en curso
 
 Registro de sesiones (más reciente arriba):
 
+- **2026-10-18 (noche, 7):** cerrada la Fase 4. Panel con JWT y refresh, selector de organización, CRUD de empleados (credenciales y vigencias), departamentos, zonas, nodos, puertas y lectores, perfiles con vista previa, kioscos, membresías y organizaciones. Apertura remota, enrolamiento asistido (con `GET /api/v1/enrollment-reads/`) y marcaciones filtradas. Los filtros por clave foránea comparan el UUID: un `ModelChoiceFilter` congelaba el queryset vacío del tenant al importar el módulo y la lista de credenciales respondía 400. La Fase 3 sigue a la espera del hardware de P17. Siguiente: Fase 5 (tiempo real y aforo).
 - **2026-10-18 (noche, 6):** agente Edge en Go. SQLite, normalización compartida con el backend, motor de acceso (APB, vigencia, rostro, enrolamiento), cliente del gateway con descarte del historial, simulador de gateway, delta/lotes/latido y canal de comandos con long-poll. `POST /api/v1/edge/enrollment-reads/` publica las lecturas del modo asistido. Guía en `docs/edge-install.md`. La fase sigue en curso: no hay Raspberry ni lector real para el informe de latencia ni para la prueba de hardware (P17).
 - **2026-10-18 (noche, 5):** cerrada la Fase 2. Protocolo Edge v1 en `docs/edge-protocol.md`: delta paginado (200 con lista vacía), lotes idempotentes por UUID, presencia por timestamp, heartbeat con baja por tarea periódica, y canal de comandos por WebSocket más long-poll. ADR-005 y ADR-010. El simulador pagina 10 000 credenciales y reenvía 1 000 marcaciones sin duplicarlas. `AccessAnomaly` queda creado para el APB que reporta el nodo; la vista y la reconciliación siguen en la Fase 5. Siguiente: Fase 3 (agente Go).
 - **2026-10-18 (noche, 4):** cerradas las fases 0 y 1. Monorepo (`backend`, `frontend`, `edge`, `infra`), Compose, CI, ADR-001, ADR-002, ADR-003, ADR-004 y ADR-009. API administrativa con aislamiento por organización, secuencia global `sync_version_seq`, perfiles de lector, `seed_demo` con Acme y Globex, y pruebas por encima del 80 % en `tenants`, `people` y `access`. Siguiente: Fase 2 (delta, lotes, heartbeat y canal de comandos).

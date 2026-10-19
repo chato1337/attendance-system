@@ -6,6 +6,41 @@ from django.db import IntegrityError, transaction
 from apps.people.models import Credential, Employee
 
 
+def test_credentials_can_be_listed_by_employee(acme_client, acme, globex):
+    owner = Employee.all_objects.create(
+        organization=acme, document_id="F4", first_name="Panel", last_name="Prueba"
+    )
+    other = Employee.all_objects.create(
+        organization=acme, document_id="F5", first_name="Otra", last_name="Persona"
+    )
+    foreign = Employee.all_objects.create(
+        organization=globex, document_id="F4", first_name="Bruno", last_name="Díaz"
+    )
+    Credential.all_objects.create(
+        organization=acme,
+        employee=owner,
+        type=Credential.CredentialType.RFID,
+        payload="00AB12",
+    )
+    Credential.all_objects.create(
+        organization=acme,
+        employee=other,
+        type=Credential.CredentialType.RFID,
+        payload="00CD34",
+    )
+    listed = acme_client.get(f"/api/v1/credentials/?employee={owner.id}")
+    assert listed.status_code == 200
+    assert [row["payload"] for row in listed.data["results"]] == ["00AB12"]
+    unknown = acme_client.get(f"/api/v1/credentials/?employee={uuid.uuid4()}")
+    assert unknown.status_code == 200
+    assert unknown.data["results"] == []
+    isolated = acme_client.get(f"/api/v1/credentials/?employee={foreign.id}")
+    assert isolated.status_code == 200
+    assert isolated.data["results"] == []
+    invalid = acme_client.get("/api/v1/credentials/?employee=no-es-uuid")
+    assert invalid.status_code == 400
+
+
 def test_viewer_cannot_mutate_employees(viewer_client):
     payload = {"document_id": "10", "first_name": "Vio", "last_name": "Leta"}
     assert viewer_client.post("/api/v1/employees/", payload, format="json").status_code == 403

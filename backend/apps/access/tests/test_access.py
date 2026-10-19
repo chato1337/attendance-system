@@ -150,6 +150,14 @@ def test_reader_device_id_is_unique_per_node(operator_client, acme):
     assert duplicate.status_code == 400
 
 
+def test_readers_can_be_listed_by_door(operator_client, acme_reader, acme_door):
+    listed = operator_client.get(f"/api/v1/readers/?door={acme_door.id}")
+    assert listed.status_code == 200
+    assert str(acme_reader.id) in {row["id"] for row in listed.data["results"]}
+    missing = operator_client.get("/api/v1/readers/?door=no-es-uuid")
+    assert missing.status_code == 400
+
+
 def test_versions_keep_growing_after_queryset_update(acme):
     employee = Employee.all_objects.create(
         organization=acme, document_id="8", first_name="Ana", last_name="Ruiz"
