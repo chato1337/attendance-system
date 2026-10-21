@@ -3,6 +3,7 @@
 Sistema multi-tenant para registrar y controlar el acceso físico de los colaboradores de varias organizaciones. La nube es la fuente de verdad. Cada sede tendrá un agente que valida credenciales locales sin Internet. El reconocimiento facial, cuando se habilite, usa el servicio externo Face-Auth.
 
 El plan vivo está en [`docs/development-plan.md`](docs/development-plan.md). Las decisiones cerradas están en [`docs/adr`](docs/adr).
+La guía de despliegue por servicio está en [`docs/deployment-guide.md`](docs/deployment-guide.md).
 
 ## Qué hay en esta versión
 
